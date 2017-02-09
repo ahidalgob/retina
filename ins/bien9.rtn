@@ -1,0 +1,14 @@
+program
+    with
+        number i;
+    do
+        with
+            number j = 1;
+        do
+            while j <= 4 do
+                write j, " ";
+                j = j + 1;
+            end;
+        end;
+    end;
+end;

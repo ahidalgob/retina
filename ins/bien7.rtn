@@ -1,0 +1,11 @@
+with
+    number i;
+do
+    i = 27;
+    with
+        number i = 37;
+    do
+        write i; # Imprime 37
+    end;
+    wrtie i; # Imprime 27
+end;
