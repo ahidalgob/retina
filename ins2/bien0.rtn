@@ -1,6 +1,7 @@
 func circle(number radio)
 begin
     x = true;
+    return x;
 end;
 
 func plus(number op1, number op2) -> number
@@ -9,6 +10,9 @@ begin
 end;
 
 program
-    x = 4 - --3;
-    
+    with
+        number i = 3;
+    do
+        write i;
+    end;
 end;

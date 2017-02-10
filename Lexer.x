@@ -29,8 +29,10 @@ tokens :-
     for                                     {pushToken ForTK}
     from                                    {pushToken FromTK}
     to                                      {pushToken ToTK}
+    by                                      {pushToken ByTK}
     repeat                                  {pushToken RepeatTK}
     func                                    {pushToken FuncTK}
+    return                                  {pushToken ReturnTK}
     begin                                   {pushToken BeginTK}
     program                                 {pushToken ProgramTK}
     with                                    {pushToken WithTK}
@@ -89,8 +91,10 @@ data Token =
     ForTK { tokenPosn :: AlexPosn }                                 |
     FromTK { tokenPosn :: AlexPosn }                                |
     ToTK { tokenPosn :: AlexPosn }                                  |
+    ByTK { tokenPosn :: AlexPosn }                                  |
     BeginTK { tokenPosn :: AlexPosn }                               |
     FuncTK { tokenPosn :: AlexPosn }                                |
+    ReturnTK {tokenPosn :: AlexPosn}                                |
     RepeatTK { tokenPosn :: AlexPosn }                              |
     ProgramTK { tokenPosn :: AlexPosn }                             |
     WithTK { tokenPosn :: AlexPosn }                                |
@@ -154,10 +158,12 @@ printToken (LessTK (AlexPn _ ln cn))           = printFoundedToken ln cn  (": si
 printToken (DivExacTK (AlexPn _ ln cn))        = printFoundedToken ln cn  (": signo '/'")
 printToken (AssignTK (AlexPn _ ln cn))         = printFoundedToken ln cn  (": signo '='")
 printToken (ToTK (AlexPn _ ln cn))             = printFoundedToken ln cn  (": palabra reservada 'to'")
+printToken (ByTK (AlexPn _ ln cn))             = printFoundedToken ln cn  (": palabra reservada 'by'")
 printToken (ForTK (AlexPn _ ln cn))            = printFoundedToken ln cn  (": palabra reservada 'for'")
 printToken (WhileTK (AlexPn _ ln cn))          = printFoundedToken ln cn  (": palabra reservada 'while'")
 printToken (BeginTK (AlexPn _ ln cn))          = printFoundedToken ln cn  (": palabra reservada 'begin'")
 printToken (FuncTK (AlexPn _ ln cn))           = printFoundedToken ln cn  (": palabra reservada 'func'")
+printToken (ReturnTK (AlexPn _ ln cn))         = printFoundedToken ln cn  (": palabra reservada 'return'")
 printToken (RepeatTK (AlexPn _ ln cn))         = printFoundedToken ln cn  (": palabra reservada 'repeat'")
 printToken (ProgramTK (AlexPn _ ln cn))        = printFoundedToken ln cn  (": palabra reservada 'program'")
 printToken (WithTK (AlexPn _ ln cn))           = printFoundedToken ln cn  (": palabra reservada 'with'")
