@@ -13,5 +13,6 @@ main = do
                         mapM_ printToken $ reverse $ tokenList ls
                     else do
                         putStrLn ":)"
+                        mapM_ printToken $ reverse $ tokenList ls
                         putStrLn . show . (P.parse) . reverse . tokenList $ ls
         Left e -> putStrLn e

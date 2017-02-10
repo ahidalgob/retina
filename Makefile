@@ -1,4 +1,4 @@
-retina: Lexer.x Parser.y
+retina: Lexer Parser
 	ghc --make retina.hs
 
 Lexer: Lexer.x
