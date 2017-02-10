@@ -1,2 +1,5 @@
-*.hs
 *.hi
+*.o
+Lexer.hs
+Parser.hs
+retina
