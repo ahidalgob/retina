@@ -1,0 +1,21 @@
+func circle(number radio)
+begin
+    arc(360, radio);
+end;
+
+func plus(number op1, number op2) -> number
+begin
+    return op1 + op2;
+end;
+
+program
+    writeln "A&G";
+    with
+        number x = 4;
+    do
+        repeat x times
+            forward(50); # Traza una línea por 50 puntos
+            rotatel(90); # Gira 90 grados contra-reloj
+        end;
+    end;
+end;

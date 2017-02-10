@@ -1,0 +1,4 @@
+func plus(number op1, number op2) -> number
+begin
+    return op1 + op2;
+end;

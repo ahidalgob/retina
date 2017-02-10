@@ -1,0 +1,9 @@
+func circle(number radio)
+begin
+    arc(360, radio);
+end;
+
+func plus(number op1, number op2) -> number
+begin
+    return op1 + op2;
+end;

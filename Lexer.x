@@ -1,14 +1,13 @@
 
--- Primera entrega del proyecto de Traductores
-
+-- Segunda entrega del proyecto de Traductores
+-- Lexer
 -- Augusto Hidalgo 13-10665
 -- Genesis Kufatty 13-10708
 
 
 
 {
-module Main (main) where
-import System.Environment
+module Lexer(Token(..), printToken, runAlexScan, AlexUserState(..), AlexPosn(..)) where
 }
 
 %wrapper "monadUserState"
@@ -53,7 +52,7 @@ tokens :-
     false                                   {pushToken FalseTK}
     mod                                     {pushToken ModTK}
     div                                     {pushToken DivTK}
-    \,                                      {pushToken ComaTK}
+    \,                                      {pushToken CommaTK}
     \(                                      {pushToken ParenOpenTK}
     \)                                      {pushToken ParenCloseTK}    
     \;                                      {pushToken Semicolon}
@@ -70,7 +69,7 @@ tokens :-
     \<                                      {pushToken LessTK}
     \-\>                                    {pushToken TypeTK}
     \=                                      {pushToken AssignTK}
-    ($sim){3}                               {pushInvalid InvalidTK} -- Invalid Strings
+    -- ($sim){3}                               {pushInvalid InvalidTK} -- Invalid Strings
     $digit+(\.[$digit]+)?	                {pushTokenWithString NumLiteralTK} -- Cadenas de Digitos     
     [$digit \.]+                            {pushInvalid InvalidTK} -- Invalid Numbers
     [a-z][a-zA-Z\_0-9]*	            	    {pushTokenWithString IdTK} -- Identificadores
@@ -86,59 +85,59 @@ tokens :-
 
 -- The token type:
 data Token =
-    WhileTK AlexPosn                |
-    ForTK AlexPosn                  |
-    FromTK AlexPosn                 |
-    ToTK AlexPosn                   |
-    BeginTK AlexPosn                |
-    FuncTK AlexPosn                 |
-    RepeatTK AlexPosn               |
-    ProgramTK AlexPosn              |
-    WithTK AlexPosn                 |
-    DoTK AlexPosn                   |
-    EndTK AlexPosn                  |
-    TimesTK AlexPosn                |
-    NotTK AlexPosn                  |
-    AndTK AlexPosn                  |
-    OrTK AlexPosn                   |
-    ReadTK AlexPosn                 |
-    WriteTK AlexPosn                |
-    WritelnTK AlexPosn              |
-    IfTK AlexPosn                   |
-    ThenTK AlexPosn                 |
-    ElseTK AlexPosn                 |
-    NumberTK AlexPosn               |
-    BooleanTK AlexPosn              |
-    TrueTK AlexPosn                 |
-    FalseTK AlexPosn                |
-    DivTK AlexPosn                  |
-    ModTK AlexPosn                  |
-    ComaTK AlexPosn                 |
-    NumLiteralTK AlexPosn String    |
-    StringTK AlexPosn String        |
-    IdTK AlexPosn String            |
-    FuncIdTK AlexPosn String        |
-    PlusTK AlexPosn                 |
-    EqualTK AlexPosn                |
-    ProductTK AlexPosn              |
-    MinusTK AlexPosn                |
-    RestTK AlexPosn                 |
-    DivExacTK AlexPosn              |
-    DifTK  AlexPosn                 |
-    GreaterEqualTK AlexPosn         |
-    LessEqualTK AlexPosn            |
-    GreaterTK AlexPosn              |
-    LessTK AlexPosn                 |
-    AssignTK AlexPosn               |
-    ParenOpenTK AlexPosn            |
-    ParenCloseTK AlexPosn           |
-    Semicolon AlexPosn              |
-    TypeTK AlexPosn                 |
-    InvalidTK AlexPosn String
+    WhileTK { tokenPosn :: AlexPosn }                               |
+    ForTK { tokenPosn :: AlexPosn }                                 |
+    FromTK { tokenPosn :: AlexPosn }                                |
+    ToTK { tokenPosn :: AlexPosn }                                  |
+    BeginTK { tokenPosn :: AlexPosn }                               |
+    FuncTK { tokenPosn :: AlexPosn }                                |
+    RepeatTK { tokenPosn :: AlexPosn }                              |
+    ProgramTK { tokenPosn :: AlexPosn }                             |
+    WithTK { tokenPosn :: AlexPosn }                                |
+    DoTK { tokenPosn :: AlexPosn }                                  |
+    EndTK { tokenPosn :: AlexPosn }                                 |
+    TimesTK { tokenPosn :: AlexPosn }                               |
+    NotTK { tokenPosn :: AlexPosn }                                 |
+    AndTK { tokenPosn :: AlexPosn }                                 |
+    OrTK { tokenPosn :: AlexPosn }                                  |
+    ReadTK { tokenPosn :: AlexPosn }                                |
+    WriteTK { tokenPosn :: AlexPosn }                               |
+    WritelnTK { tokenPosn :: AlexPosn }                             |
+    IfTK { tokenPosn :: AlexPosn }                                  |
+    ThenTK { tokenPosn :: AlexPosn }                                |
+    ElseTK { tokenPosn :: AlexPosn }                                |
+    NumberTK { tokenPosn :: AlexPosn }                              |
+    BooleanTK { tokenPosn :: AlexPosn }                             |
+    TrueTK { tokenPosn :: AlexPosn }                                |
+    FalseTK { tokenPosn :: AlexPosn }                               |
+    DivTK { tokenPosn :: AlexPosn }                                 |
+    ModTK { tokenPosn :: AlexPosn }                                 |
+    CommaTK { tokenPosn :: AlexPosn }                               |
+    NumLiteralTK { tokenPosn :: AlexPosn, tokenString :: String}    |
+    StringTK { tokenPosn :: AlexPosn, tokenString :: String}        |
+    IdTK { tokenPosn :: AlexPosn, tokenString :: String}            |
+    FuncIdTK { tokenPosn :: AlexPosn, tokenString :: String}        |
+    PlusTK { tokenPosn :: AlexPosn }                                |
+    EqualTK { tokenPosn :: AlexPosn }                               |
+    ProductTK { tokenPosn :: AlexPosn }                             |
+    MinusTK { tokenPosn :: AlexPosn }                               |
+    RestTK { tokenPosn :: AlexPosn }                                |
+    DivExacTK { tokenPosn :: AlexPosn }                             |
+    DifTK  { tokenPosn :: AlexPosn }                                |
+    GreaterEqualTK { tokenPosn :: AlexPosn }                        |
+    LessEqualTK { tokenPosn :: AlexPosn }                           |
+    GreaterTK { tokenPosn :: AlexPosn }                             |
+    LessTK { tokenPosn :: AlexPosn }                                |
+    AssignTK { tokenPosn :: AlexPosn }                              |
+    ParenOpenTK { tokenPosn :: AlexPosn }                           |
+    ParenCloseTK { tokenPosn :: AlexPosn }                          |
+    Semicolon { tokenPosn :: AlexPosn }                             |
+    TypeTK { tokenPosn :: AlexPosn }                                |
+    InvalidTK { tokenPosn :: AlexPosn, tokenString :: String}
     deriving (Eq,Show)
     
 printToken (TypeTK (AlexPn _ ln cn))           = printFoundedToken ln cn  (": signo '->'")
-printToken (ComaTK (AlexPn _ ln cn))           = printFoundedToken ln cn  (": signo ','")
+printToken (CommaTK (AlexPn _ ln cn))          = printFoundedToken ln cn  (": signo ','")
 printToken (ParenOpenTK (AlexPn _ ln cn))      = printFoundedToken ln cn  (": signo '('")
 printToken (ParenCloseTK (AlexPn _ ln cn))     = printFoundedToken ln cn  (": signo ')'")
 printToken (Semicolon (AlexPn _ ln cn))        = printFoundedToken ln cn  (": signo ';'")
@@ -239,10 +238,4 @@ pushInvalid tokenizer =
 runAlexScan :: String -> Either String AlexUserState
 runAlexScan s = runAlex s $ alexMonadScan >> getUserState
 
-main = do
-    s <- getArgs >>= (readFile . head)
-    let res = runAlexScan s
-    case res of
-        Right ls -> mapM_ printToken $ reverse $ tokenList ls
-        Left e -> putStrLn e
 }
