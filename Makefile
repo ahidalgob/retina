@@ -7,7 +7,7 @@ Lexer: Lexer.x
 Parser: Parser.y
 	happy Parser.y
 
-clear:
+clean:
 	-rm -f *.hi
 	-rm -f *.o
 	-rm -f Lexer.hs

@@ -15,7 +15,7 @@ import Lexer
     func            { FuncTK _ }
     repeat          { RepeatTK _ }
     program         { ProgramTK _ }
-    woth            { WithTK _ }
+    with            { WithTK _ }
     do              { DoTK _ }
     end             { EndTK _ }
     times           { TimesTK _ }
@@ -44,7 +44,7 @@ import Lexer
     '*'             { ProductTK _ }
     '-'             { MinusTK _ }
     '%'             { RestTK _ }
-    'div'           { DivExacTK _ }
+    '/'             { DivExacTK _ }
     '/='            { DifTK _ }
     '>='            { GreaterEqualTK _ }
     '<='            { LessEqualTK _ }
@@ -55,14 +55,21 @@ import Lexer
     ')'             { ParenCloseTK _ }
     ';'             { Semicolon _ }
     '->'            { TypeTK _ }
-    
+
+%nonassoc not
+%left and
+%left or
+%nonassoc '>' '<' '==' '/=' '>=' '<=' 
+%left '+' '-'
+%left '*' '/'
+%left '%' mod div
 
 %%
 
 P : LDF program LI end ';' { PE $1 $3 }
 
 LDF : DF LDF    { LDFE $ $1 : listLDFE $2 }
-    |           {-empty-} {LDFE [] }
+    | {-empty-} { LDFE [] }
 
 DF  : func fid '(' LP ')' begin LI end ';'          { DFE $2 $4 $7 }
     | func fid '(' LP ')' '->' T begin LIR end ';'  { RDFE $2 $4 $7 $9 }
@@ -70,42 +77,39 @@ DF  : func fid '(' LP ')' begin LI end ';'          { DFE $2 $4 $7 }
 LP : {-empty-}      { LPE [] }
    | LPNV           { LPE $ listLPNVE $1 }
    
-LPNV : T id             { LPNVE [ParamE $1 $2] }
-     | T id ',' LPNV    { LPNVE $ ParamE $1 $2 : listLPNVE $4 }
+LPNV : T id             { LPNVE [($1, $2)] }
+     | T id ',' LPNV    { LPNVE $ ($1, $2) : listLPNVE $4 }
 
 T : boolean { BooleanE }
   | number  { NumberE }
   
-E  : EA { ExpA $1 }
-   | EB { ExpB $1 }
+E   : id { IdE $1 }
 
+    | true { TrueE }
+    | false { FalseE }
+    | '(' E ')' { ParE $2 }
+    | E '<' E { ComparE $1 "<" $3 }
+    | E '>' E { ComparE $1 ">" $3 }
+    | E '<=' E { ComparE $1 "<=" $3 }
+    | E '>=' E { ComparE $1 ">=" $3 }
+    | E '==' E { ComparE $1 "==" $3 }
+    | E '/=' E { ComparE $1 "/=" $3 }
+    | not E { NotE $2 }
+    | E and E { LogicE $1 "and" $3 }
+    | E or E { LogicE $1 "or" $3 }
+    | fid '(' LV ')' { FuncE $1 $3 }
 
-EB : true { TrueE }
-   | false { FalseE }
-   | '(' EB ')' { BoolE $2 }
-   | EA '<' EA { ComparE $1 "<" $3 }
-   | EA '>' EA { ComparE $1 ">" $3 }
-   | EA '<=' EA { ComparE $1 "<=" $3 }
-   | EA '>=' EA { ComparE $1 ">=" $3 }
-   | EA '==' EA { ComparE $1 "==" $3 }
-   | EA '/=' EA { ComparE $1 "/=" $3 }
-   | not EB { NotE $2 }
-   | id { IdE $1 }
-   | EB and EB { LogicE $1 "and" $3 }
-   | EB or EB { LogicE $1 "or" $3 }
-   | fid '(' LV ')' { FuncE $1 $3 }
-
-
-EA : EA '+' EA { AritE $1 "+" $3 }
-   {-| EA '-' EA { MinusE $1 $3 }
-   | EA '*' EA { FactorE $1 $3 }
-   | EA '%' EA { RestE $1 $3 }
-   | EA 'mod' EA { ModE $1 $3 }
-   | EA 'div' EA { DivE $1 $3 }
-   | '(' EA ')' { ParenE $2 }
-   | id { IdE $1 }
-   | numberLiteral { NumberE $1 }
-   | fid '(' LV ')' { FunArit $1 $3 }-}
+    | '-' E         { MinusE $2 }
+    | E '+' E       { AritE $1 "+" $3 }
+    | E '-' E       { AritE $1 "-" $3 }
+    | E '*' E       { AritE $1 "*" $3 }
+    | E '/' E       { AritE $1 "/" $3 }
+    | E '%' E       { AritE $1 "%" $3 }
+    | E mod E       { AritE $1 "mod" $3 }
+    | E div E       { AritE $1 "div" $3 }
+    {-| '(' E ')' { NumParE $2 }-}
+    | n { NumberLiteralE $1 }
+    {-| fid '(' LV ')' { FuncE $1 $3 } -}
 
 LV  : LVNV       { LVE $ listLVNVE $1 }
     | {-empty-}  { LVE [] }
@@ -113,7 +117,7 @@ LV  : LVNV       { LVE $ listLVNVE $1 }
 LVNV    : E             { LVNVE [$1] }
         | E ',' LVNV    { LVNVE $ $1 : listLVNVE $3}
 
-LD  : T DST ';' LD     { LDE $ (DCTE $1 $ listDSTE $2) : listLDE $4}
+LD  : T DST ';' LD  { LDE $ ($1, listDSTE $2) : listLDE $4}
     | {-empty-}     { LDE [] }
 
 DST : id '=' E          {DSTE [DeclVal $1 $3]}
@@ -126,24 +130,40 @@ LI  : {-empty-}         { LIE [] }
     
 LIR : LI                { $1 }
     
-I : while           { IE "hola"}
     
+I   : with LD do LI end ';'             { WithDoE $2 $4 }
+    | repeat E times LI end ';'         { RepeatE $2 $4 }
+    | fid '(' LV ')' ';'                { FuncE $1 $3 }
+    | id '=' E ';'                      { AssignE $1 $3 }
+    | for id from E to E do LI end ';'  { ForE $2 $4 $6 $8 }
+    | if E then LI end ';'              { IfE $2 $4 }
+    | if E then LI then LI end ';'      { IfThenE $2 $4 $6 }
+    | while E do LI end ';'             { WhileE $2 $4}
+    | write string LPW                  { WriteE $ PWSE $2 : listLPWE $3 }
+    | write E LPW                       { WriteE $ PWEE $2 : listLPWE $3 }
+    | writeln string LPW                { WriteE $ PWSE $2 : listLPWE $3 }
+    | writeln E LPW                     { WriteE $ PWEE $2 : listLPWE $3 }
+    | read id ';'                       { ReadE $2 }
+    
+LPW : ';'                               { LPWE [] }
+    | ',' string LPW                    { LPWE $ PWSE $2 : listLPWE $3 }
+    | ',' E LPW                         { LPWE $ PWEE $2 : listLPWE $3 }
+
 {
 data Exp =
 	PE Exp Exp                          |
     LDFE {listLDFE :: [Exp]}            |
     DFE String Exp Exp                  |
     RDFE String Exp Exp Exp             |
-    LPE {listLPE :: [Exp]}              |
-    LPNVE {listLPNVE :: [Exp]}          |
-    ParamE Exp String                   |
+    LPE {listLPE :: [(Exp, String)]}    |
+    LPNVE {listLPNVE :: [(Exp, String)]}|
     BooleanE                            |
     NumberE                             |
     ExpA Exp                            |
     ExpB Exp                            |
     TrueE                               |
     FalseE                              |
-    BoolE Exp                           |
+    ParE Exp                            |
     ComparE Exp String Exp              |
     NotE Exp                            |
     IdE String                          |
@@ -153,17 +173,36 @@ data Exp =
     LVE {listLVE :: [Exp]}              |
     LVNVE {listLVNVE :: [Exp]}          |
     
-    AritE Exp String Exp |
+    MinusE Exp                          |
+    AritE Exp String Exp                |
+    {-NumParE Exp                         |-}
+    NumberLiteralE String               |
     
-    LDE {listLDE :: [Exp]} |
-    DCTE {t :: Exp, listDCTE :: [Exp]} |
-    DSTE {listDSTE :: [Exp]} |
-    Decl String |
-    DeclVal String Exp |
+    
+    LDE {listLDE :: [(Exp, [Exp])]}     |
+    DSTE {listDSTE :: [Exp]}            |
+    Decl String                         |
+    DeclVal String Exp                  |
     
     
     LIE {listLIE :: [Exp]}              |
-    IE String
+    
+    
+    WithDoE Exp Exp                     |
+    RepeatE Exp Exp                     |
+    AssignE String Exp                  |
+    ForE String Exp Exp Exp             |
+    IfE Exp Exp                         |
+    IfThenE Exp Exp Exp                 |
+    WhileE Exp Exp                      |
+    WriteE {listWriteE :: [Exp]}        |
+    ReadE String                        |
+    
+    LPWE {listLPWE :: [Exp]}            |
+    PWEE Exp                            |
+    PWSE String 
+    
+    
 	deriving Show
 
 
