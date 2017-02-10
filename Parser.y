@@ -1,6 +1,7 @@
 {
 module Parser where
 import Lexer
+import AST
 }
 
 %name parse
@@ -174,74 +175,6 @@ LPW : ';'                               { LPWE [] }
     | ',' E LPW                         { LPWE $ PWEE $2 : listLPWE $3 }
 
 {
-data Exp =
-    PE Exp Exp                          |
-    LBLOCKE {listLBLOCKE :: [Exp]}      |
-    LDFE {listLDFE :: [Exp]}            |
-    DFE String Exp Exp                  |
-    RDFE String Exp Exp Exp             |
-    LPE {listLPE :: [(Exp, String)]}    |
-    LPNVE {listLPNVE :: [(Exp, String)]}|
-    BooleanE                            |
-    NumberE                             |
-    ExpA Exp                            |
-    ExpB Exp                            |
-    TrueE                               |
-    FalseE                              |
-    ParE Exp                            |
-    ComparE Exp String Exp              |
-    NotE Exp                            |
-    IdE String                          |
-    LogicE Exp String Exp               |
-    FuncE String Exp                    |
-    
-    LVE {listLVE :: [Exp]}              |
-    LVNVE {listLVNVE :: [Exp]}          |
-    
-    MinusE Exp                          |
-    AritE Exp String Exp                |
-    {-NumParE Exp                         |-}
-    NumberLiteralE String               |
-    
-    
-    LDE {listLDE :: [(Exp, [Exp])]}     |
-    DSTE {listDSTE :: [Exp]}            |
-    Decl String                         |
-    DeclVal String Exp                  |
-    
-    
-    LIE {listLIE :: [Exp]}              |
-    LIRE {listLIRE :: [Exp]}            |
-    
-    
-    WithDoE Exp Exp                     |
-    RepeatE Exp Exp                     |
-    AssignE String Exp                  |
-    ForE String Exp Exp Exp             |
-    ForByE String Exp Exp Exp Exp       |
-    IfThenE Exp Exp                     |
-    IfThenElseE Exp Exp Exp             |
-    WhileE Exp Exp                      |
-    WriteE {listWriteE :: [Exp]}        |
-    ReadE String                        |
-    
-    
-    WithDoRE Exp Exp                    |
-    RepeatRE Exp Exp                    |
-    ForRE String Exp Exp Exp            |
-    ForByRE String Exp Exp Exp Exp      |
-    IfThenRE Exp Exp                    |
-    IfThenElseRE Exp Exp Exp            |
-    WhileRE Exp Exp                     |
-    
-    ReturnE Exp                         |
-    
-    LPWE {listLPWE :: [Exp]}            |
-    PWEE Exp                            |
-    PWSE String 
-    
-    
-	deriving Show
 
 
 happyError :: [Token] -> a

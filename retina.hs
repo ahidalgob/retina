@@ -1,4 +1,5 @@
 import Lexer
+import AST
 import qualified Parser as P
 import System.Environment
 
@@ -13,6 +14,6 @@ main = do
                         mapM_ printToken $ reverse $ tokenList ls
                     else do
                         putStrLn ":)"
-                        mapM_ printToken $ reverse $ tokenList ls
-                        putStrLn . show . (P.parse) . reverse . tokenList $ ls
+                        -- mapM_ printToken $ reverse $ tokenList ls
+                        printExp 0 . (P.parse) . reverse . tokenList $ ls
         Left e -> putStrLn e
