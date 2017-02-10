@@ -69,10 +69,7 @@ import AST
 
 %%
 
-P : LDF program LBLOCK end ';'  { PE $1 $3 }
-
-LBLOCK  : {-empty-}                     { LBLOCKE [] }
-        | with LD do LI end ';' LBLOCK  { LBLOCKE $ WithDoE $2 $4 : listLBLOCKE $7 }
+P : LDF program LI end ';'  { PE $1 $3 }
 
 LDF : DF LDF    { LDFE $ $1 : listLDFE $2 }
     | {-empty-} { LDFE [] }
@@ -178,11 +175,11 @@ LPW : ';'                               { LPWE [] }
 
 
 happyError :: [Token] -> a
-happyError tks = error ("Parse error at " ++ lcn ++ "\n")
+happyError tks = error ("Error en el parser en " ++ lcn ++ "\n")
     where
         lcn =   case tks of
-                    [] -> "end of file"
-                    tk:_ -> "line " ++ show l ++ ", column " ++ show c
+                    [] -> "el final del archivo"
+                    tk:_ -> "linea " ++ show l ++ ", columna " ++ show c
                         where
                             AlexPn _ l c = tokenPosn tk
 }

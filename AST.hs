@@ -3,7 +3,6 @@ import Control.Monad
 
 data Exp =
     PE Exp Exp                          |
-    LBLOCKE {listLBLOCKE :: [Exp]}      |
     LDFE {listLDFE :: [Exp]}            |
     DFE String Exp Exp                  |
     RDFE String Exp Exp Exp             |
@@ -11,8 +10,6 @@ data Exp =
     LPNVE {listLPNVE :: [(Exp, String)]}|
     BooleanE                            |
     NumberE                             |
-    ExpA Exp                            |
-    ExpB Exp                            |
     TrueE                               |
     FalseE                              |
     ParE Exp                            |
@@ -70,30 +67,200 @@ data Exp =
     
 	deriving Show
 
-ident = " "
+ident = "|  "
+
+putStrWithIdent n s = (replicateM_ n $ putStr ident) >> putStr s
+
+putStrLnWithIdent n s = (replicateM_ n $ putStr ident) >> putStrLn s
+
+printId n s = putStrLnWithIdent n $ "Identificador: " ++ s
 
 printExp :: Int -> Exp -> IO()
 printExp n (PE ldf lblock) = do
-    replicateM_ n $ putStr ident
-    putStrLn "Constructor de Programa:"
+    putStrLnWithIdent n "Constructor de Programa:"
     printExp (n+1) ldf
-    -- printExp lblock (n+1)
+    printExp (n+1) lblock
     
 printExp n (LDFE dfl) = do
-    replicateM_ n $ putStr ident
-    putStrLn "Lista de definiciones de funciones:"
+    putStrLnWithIdent n "Lista de definiciones de funciones:"
     mapM_ (printExp (n+1)) dfl
 
 printExp n (DFE id lp lir) = do
-    replicateM_ n $ putStr ident
-    putStrLn "Definicion de funcion:"
-    replicateM_ (n+1) $ putStr ident
-    putStrLn $ "Identificador: " ++ id
+    putStrLnWithIdent n "Definicion de funcion:"
+    printId (n+1) id
+    printExp (n+1) lp
+    --printExp (n+1) lir
     
     
-printExp n (RDFE id lp lir ret) = do
-    replicateM_ n $ putStr ident
-    putStrLn "Definicion de funcion:"
-    replicateM_ (n+1) $ putStr ident
-    putStrLn $ "Identificador: " ++ id
+printExp n (RDFE id lp ret lir) = do
+    putStrLnWithIdent n "Definicion de funcion:"
+    printId (n+1) id
+    printExp (n+1) lp
+    -- retorno
+    -- printExp (n+1) lir
+    
+printExp n (LPE pl) = do 
+    putStrLnWithIdent n "Lista de parametros de la funcion: "
+    mapM_ (printParam) pl
+    where 
+        printParam (exp, s) = do
+            --printExp (n+1) exp
+            printId (n+1) s
+    
+printExp n (BooleanE) = do
+    putStrLnWithIdent n "Tipo de dato: boolean"
+     
+printExp n (NumberE) = do
+    putStrLnWithIdent n "Tipo de dato: number"
+     
+
+printExp n (TrueE) = do
+    putStrLnWithIdent n "Literal booleano: true"
+     
+printExp n (FalseE) = do
+    putStrLnWithIdent n "Literal booleano: false"
+     
+printExp n (ParE exp) = do
+    putStrLnWithIdent n "Expresion entre parentesis:"
+    printExp (n+1) exp
+     
+printExp n (ComparE exp s exp1) = do
+    putStrLnWithIdent n "Operacion de comparacion:"
+    putStrLnWithIdent (n+1) $ "Comparador: " ++ s
+    putStrLnWithIdent (n+1) "Lado izquierdo:"
+    printExp (n+2) exp
+    putStrLnWithIdent (n+1) "Lado derecho:"
+    printExp (n+2) exp1
+    
+printExp n (NotE exp) = do
+    putStrLnWithIdent n "Negacion booleana:"
+    printExp (n+2) exp
+    
+printExp n (IdE s) = do
+    printId n s
+
+printExp n (LogicE exp s exp1) = do
+    putStrLnWithIdent n "Operacion binaria logica:"
+    putStrLnWithIdent (n+1) $ "Operador: " ++ s
+    putStrLnWithIdent (n+1) "Lado izquierdo:"
+    printExp (n+2) exp
+    putStrLnWithIdent (n+1) "Lado derecho:"
+    printExp (n+2) exp1
+    
+printExp n (FuncE s exp) = do 
+    putStrLnWithIdent n "Llamada de funcion:"
+    printId (n+1) s
+    printExp (n+1) exp
+
+printExp n (LVE lv) = do
+    putStrLnWithIdent n "Lista de valores:"
+    mapM_ (printExp (n+1)) lv
+
+printExp n (MinusE exp) = do
+    putStrLnWithIdent n "Menos unario:"
+    printExp (n+1) exp
+    
+printExp n (AritE exp s exp1) = do
+    putStrLnWithIdent n "Operacion binaria aritmetica:"
+    putStrLnWithIdent (n+1) $ "Operador: " ++ s
+    putStrLnWithIdent (n+1) "Lado izquierdo:"
+    printExp (n+2) exp
+    putStrLnWithIdent (n+1) "Lado derecho:"
+    printExp (n+2) exp1
+    
+printExp n (NumberLiteralE s) = do
+    putStrLnWithIdent n $ "Literal numerico:" ++ s
+    
+printExp n (LDE ld) = do
+    putStrLnWithIdent n "Lista de lista de declaracion de datos:"
+    mapM_ (printDatos) ld
+    where 
+        printDatos (exp, ldst) = do
+            printExp (n+1) exp
+            mapM_ (printExp (n+1)) ldst
+            
+printExp n (DSTE ld) = do
+    putStrLnWithIdent n "Lista de declaraciones:"
+    mapM_ (printExp (n+1)) ld
+
+printExp n (Decl s) = do
+    putStrLnWithIdent n "Declaracion con identificador:"
+    printId (n+1) s
+
+printExp n (DeclVal s exp) = do
+    putStrLnWithIdent n "Declaracion con identificador y valor:"
+    printId (n+1) s
+    putStrLnWithIdent (n+1) "Valor:"
+    printExp (n+2) exp
+    
+printExp n (LIE li) = do 
+    putStrLnWithIdent n "Lista de instrucciones:"
+    mapM_ (printExp (n+1)) li
+    
+printExp n (LIRE lir) = do
+    putStrLnWithIdent n "Lista de instrucciones:"
+    mapM_ (printExp (n+1)) lir
+
+printExp n (WithDoE exp exp1) = do
+    putStrLnWithIdent n "Bloque with-do:"
+    printExp (n+1) exp
+    printExp (n+1) exp1
+    
+printExp n (RepeatE exp exp1) = do
+    putStrLnWithIdent n "Instruccion repeat:"
+    putStrLnWithIdent (n+1) "Cantidad de repeticiones:"
+    printExp (n+2) exp
+    printExp (n+1) exp1
+    
+printExp n (AssignE s exp1) = do
+    putStrLnWithIdent n "Instruccion de asignacion:"
+    printId (n+1) s
+    putStrLnWithIdent (n+1) "Valor:"
+    printExp (n+2) exp1
+    
+printExp n (ForRE s exp exp1 exp2) = do
+    putStrLnWithIdent n "Instruccion for:"
+    putStrLnWithIdent (n+1) "Variable iteradora:"
+    printId (n+2) s
+    putStrLnWithIdent (n+1) "Desde:"
+    printExp (n+2) exp
+    putStrLnWithIdent (n+1) "Hasta:"
+    printExp (n+2) exp1
+    printExp (n+1) exp2
+
+printExp n (ForByE s exp exp1 exp2 exp3) = do
+    putStrLnWithIdent n "Instruccion for-by:"
+    putStrLnWithIdent (n+1) "Variable iteradora:"
+    printId (n+2) s
+    putStrLnWithIdent (n+1) "Desde:"
+    printExp (n+2) exp
+    putStrLnWithIdent (n+1) "Hasta:"
+    printExp (n+2) exp1
+    putStrLnWithIdent (n+1) "Paso:"
+    printExp (n+2) exp2
+    printExp (n+1) exp3
+
+printExp n (IfThenE exp exp1) = do
+    putStrLnWithIdent n "Instruccion if-then:"
+    putStrLnWithIdent (n+1) "Condicion:"
+    printExp (n+2) exp
+    printExp (n+1) exp1
+    
+printExp n (IfThenElseE exp exp1 exp2) = do
+    putStrLnWithIdent n "Instruccion if-then-else:"
+    putStrLnWithIdent (n+1) "Condicion:"
+    printExp (n+2) exp
+    printExp (n+1) exp1 
+    printExp (n+1) exp2
+
+    
+    
+     
+
+     
+
+
+
+    
+
     

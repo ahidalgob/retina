@@ -1,18 +1,8 @@
-func circle(number radio)
-begin
-    x = true;
-    return x;
-end;
-
-func plus(number op1, number op2) -> number
-begin
-    #op1 + op2;
-end;
 
 program
     with
         number i = 3;
     do
-        write i;
+        i = 4;
     end;
 end;
