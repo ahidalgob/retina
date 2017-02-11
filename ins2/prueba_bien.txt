@@ -1,0 +1,12 @@
+##
+#
+func fun() 
+begin
+#
+#$NAsfa/$
+end;
+
+program
+	boolean hols_d=(1==2); number n1= (1),n2;
+	fun();
+end;

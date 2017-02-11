@@ -26,6 +26,7 @@ tokens :-
     
     --Tokens de palabras reservadas:
     while                                   {pushToken WhileTK}
+    while\(                                 {pushTokenWithOpenPar WhileTK}
     for                                     {pushToken ForTK}
     from                                    {pushToken FromTK}
     to                                      {pushToken ToTK}
@@ -33,6 +34,7 @@ tokens :-
     repeat                                  {pushToken RepeatTK}
     func                                    {pushToken FuncTK}
     return                                  {pushToken ReturnTK}
+    return\(                                {pushTokenWithOpenPar ReturnTK}
     begin                                   {pushToken BeginTK}
     program                                 {pushToken ProgramTK}
     with                                    {pushToken WithTK}
@@ -40,12 +42,19 @@ tokens :-
     end                                     {pushToken EndTK}
     times                                   {pushToken TimesTK}
     not                                     {pushToken NotTK}
+    not\(                                   {pushTokenWithOpenPar NotTK}
     and                                     {pushToken AndTK}
+    and\(                                   {pushTokenWithOpenPar AndTK}
     or                                      {pushToken OrTK}
+    or\(                                    {pushTokenWithOpenPar OrTK}
     read                                    {pushToken ReadTK}
+    read\(                                  {pushTokenWithOpenPar ReadTK}
     write                                   {pushToken WriteTK}
+    write\(                                 {pushTokenWithOpenPar WriteTK}
     writeln                                 {pushToken WritelnTK}
+    writeln\(                               {pushTokenWithOpenPar WritelnTK}
     if                                      {pushToken IfTK}
+    if\(                                    {pushTokenWithOpenPar IfTK}
     then                                    {pushToken ThenTK}
     else                                    {pushToken ElseTK}
     number                                  {pushToken NumberTK}
@@ -53,7 +62,9 @@ tokens :-
     true                                    {pushToken TrueTK}
     false                                   {pushToken FalseTK}
     mod                                     {pushToken ModTK}
+    mod\(                                   {pushTokenWithOpenPar ModTK}
     div                                     {pushToken DivTK}
+    div\(                                   {pushTokenWithOpenPar DivTK}
     \,                                      {pushToken CommaTK}
     \(                                      {pushToken ParenOpenTK}
     \)                                      {pushToken ParenCloseTK}    
@@ -232,7 +243,13 @@ pushFuncIdTK =
      \(posn@(AlexPn x ln cn),prevChar,pending,s) len -> do  modifyUserState (pushValid $ FuncIdTK posn $ take (len-1) s)
                                                             modifyUserState (pushValid $ ParenOpenTK (AlexPn x ln (cn+len-1)))
                                                             alexMonadScan
-                                    
+
+pushTokenWithOpenPar :: (AlexPosn -> Token) -> AlexAction ()
+pushTokenWithOpenPar tokenizer =
+    \(posn@(AlexPn x ln cn),prevChar,pending,s) len -> do   modifyUserState (pushValid $ tokenizer posn)
+                                                            modifyUserState (pushValid $ ParenOpenTK (AlexPn x ln (cn+len-1)))
+                                                            alexMonadScan
+
 pushInvalid :: (AlexPosn -> String -> Token) -> AlexAction ()
 pushInvalid tokenizer =
     \(posn,prevChar,pending,s) len -> modifyUserState checkInvalid >> modifyUserState (push posn $ take len s) >> alexMonadScan

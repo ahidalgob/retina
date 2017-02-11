@@ -59,13 +59,13 @@ import AST
     ';'             { SemicolonTK _ }
     '->'            { TypeTK _ }
 
-%nonassoc not
-%left and
+
 %left or
+%left and
 %nonassoc '>' '<' '==' '/=' '>=' '<=' 
 %left '+' '-'
-%left '*' '/'
-%left '%' mod div
+%left '*' '/' '%' mod div
+%nonassoc not
 
 %%
 
