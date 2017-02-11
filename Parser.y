@@ -56,7 +56,7 @@ import AST
     '='             { AssignTK _ }
     '('             { ParenOpenTK _ }
     ')'             { ParenCloseTK _ }
-    ';'             { Semicolon _ }
+    ';'             { SemicolonTK _ }
     '->'            { TypeTK _ }
 
 %nonassoc not
@@ -121,6 +121,7 @@ LVNV    : E             { LVNVE [$1] }
         | E ',' LVNV    { LVNVE $ $1 : listLVNVE $3}
 
 LD  : T DST ';' LD  { LDE $ ($1, listDSTE $2) : listLDE $4}
+    | ';' LD        { $2 }
     | {-empty-}     { LDE [] }
 
 DST : id '=' E          {DSTE [DeclVal $1 $3]}
@@ -130,10 +131,11 @@ DST : id '=' E          {DSTE [DeclVal $1 $3]}
     
 LI  : {-empty-}         { LIE [] }
     | I LI              { LIE $ $1 : listLIE $2}
+    | ';' LI            { $2 }
     
 LIR : {-empty-}         { LIRE [] }
     | IR LIR            { LIRE $ $1 : listLIRE $2}
-    
+    | ';' LIR           { $2 }
     
 I   : with LD do LI end ';'                 { WithDoE $2 $4 }
     | repeat E times LI end ';'             { RepeatE $2 $4 }
@@ -161,8 +163,8 @@ IR  : with LD do LIR end ';'                { WithDoRE $2 $4 }
     | while E do LIR end ';'                { WhileRE $2 $4}
     | write string LPW                      { WriteE $ PWSE $2 : listLPWE $3 }
     | write E LPW                           { WriteE $ PWEE $2 : listLPWE $3 }
-    | writeln string LPW                    { WriteE $ PWSE $2 : listLPWE $3 }
-    | writeln E LPW                         { WriteE $ PWEE $2 : listLPWE $3 }
+    | writeln string LPW                    { WritelnE $ PWSE $2 : listLPWE $3 }
+    | writeln E LPW                         { WritelnE $ PWEE $2 : listLPWE $3 }
     | read id ';'                           { ReadE $2 }
     | return E ';'                             { ReturnE $2 }
     
@@ -175,11 +177,11 @@ LPW : ';'                               { LPWE [] }
 
 
 happyError :: [Token] -> a
-happyError tks = error ("Error en el parser en " ++ lcn ++ "\n")
+happyError tks = error ("Error en el parser en " ++ lcn ++ "\n" ++ "happy is sad :(")
     where
         lcn =   case tks of
                     [] -> "el final del archivo"
-                    tk:_ -> "linea " ++ show l ++ ", columna " ++ show c
+                    tk:_ -> "linea " ++ show l ++ ", columna " ++ show c ++ "\n" ++ show tk
                         where
                             AlexPn _ l c = tokenPosn tk
 }

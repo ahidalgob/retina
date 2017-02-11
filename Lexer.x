@@ -57,7 +57,7 @@ tokens :-
     \,                                      {pushToken CommaTK}
     \(                                      {pushToken ParenOpenTK}
     \)                                      {pushToken ParenCloseTK}    
-    \;                                      {pushToken Semicolon}
+    \;                                      {pushToken SemicolonTK}
     \+                                      {pushToken PlusTK}
     \=\=                                    {pushToken EqualTK}
     \*                                      {pushToken ProductTK}
@@ -71,7 +71,6 @@ tokens :-
     \<                                      {pushToken LessTK}
     \-\>                                    {pushToken TypeTK}
     \=                                      {pushToken AssignTK}
-    -- ($sim){3}                               {pushInvalid InvalidTK} -- Invalid Strings
     $digit+(\.[$digit]+)?	                {pushTokenWithString NumLiteralTK} -- Cadenas de Digitos     
     [$digit \.]+                            {pushInvalid InvalidTK} -- Invalid Numbers
     [a-z][a-zA-Z\_0-9]*	            	    {pushTokenWithString IdTK} -- Identificadores
@@ -117,10 +116,6 @@ data Token =
     DivTK { tokenPosn :: AlexPosn }                                 |
     ModTK { tokenPosn :: AlexPosn }                                 |
     CommaTK { tokenPosn :: AlexPosn }                               |
-    NumLiteralTK { tokenPosn :: AlexPosn, tokenString :: String}    |
-    StringTK { tokenPosn :: AlexPosn, tokenString :: String}        |
-    IdTK { tokenPosn :: AlexPosn, tokenString :: String}            |
-    FuncIdTK { tokenPosn :: AlexPosn, tokenString :: String}        |
     PlusTK { tokenPosn :: AlexPosn }                                |
     EqualTK { tokenPosn :: AlexPosn }                               |
     ProductTK { tokenPosn :: AlexPosn }                             |
@@ -135,64 +130,72 @@ data Token =
     AssignTK { tokenPosn :: AlexPosn }                              |
     ParenOpenTK { tokenPosn :: AlexPosn }                           |
     ParenCloseTK { tokenPosn :: AlexPosn }                          |
-    Semicolon { tokenPosn :: AlexPosn }                             |
+    SemicolonTK { tokenPosn :: AlexPosn }                             |
     TypeTK { tokenPosn :: AlexPosn }                                |
+    NumLiteralTK { tokenPosn :: AlexPosn, tokenString :: String}    |
+    StringTK { tokenPosn :: AlexPosn, tokenString :: String}        |
+    IdTK { tokenPosn :: AlexPosn, tokenString :: String}            |
+    FuncIdTK { tokenPosn :: AlexPosn, tokenString :: String}        |
     InvalidTK { tokenPosn :: AlexPosn, tokenString :: String}
-    deriving (Eq,Show)
-    
-printToken (TypeTK (AlexPn _ ln cn))           = printFoundedToken ln cn  (": signo '->'")
-printToken (CommaTK (AlexPn _ ln cn))          = printFoundedToken ln cn  (": signo ','")
-printToken (ParenOpenTK (AlexPn _ ln cn))      = printFoundedToken ln cn  (": signo '('")
-printToken (ParenCloseTK (AlexPn _ ln cn))     = printFoundedToken ln cn  (": signo ')'")
-printToken (Semicolon (AlexPn _ ln cn))        = printFoundedToken ln cn  (": signo ';'")
-printToken (PlusTK (AlexPn _ ln cn))           = printFoundedToken ln cn  (": signo '+'")
-printToken (EqualTK (AlexPn _ ln cn))          = printFoundedToken ln cn  (": signo '=='")
-printToken (ProductTK (AlexPn _ ln cn))        = printFoundedToken ln cn  (": signo '*'")
-printToken (MinusTK (AlexPn _ ln cn))          = printFoundedToken ln cn  (": signo '-'")
-printToken (RestTK (AlexPn _ ln cn))           = printFoundedToken ln cn  (": signo '%'")
-printToken (DifTK (AlexPn _ ln cn))            = printFoundedToken ln cn  (": signo '/='")
-printToken (GreaterEqualTK (AlexPn _ ln cn))   = printFoundedToken ln cn  (": signo '>='")
-printToken (LessEqualTK (AlexPn _ ln cn))      = printFoundedToken ln cn  (": signo '<='")
-printToken (GreaterTK (AlexPn _ ln cn))        = printFoundedToken ln cn  (": signo '>'")
-printToken (LessTK (AlexPn _ ln cn))           = printFoundedToken ln cn  (": signo '<'")
-printToken (DivExacTK (AlexPn _ ln cn))        = printFoundedToken ln cn  (": signo '/'")
-printToken (AssignTK (AlexPn _ ln cn))         = printFoundedToken ln cn  (": signo '='")
-printToken (ToTK (AlexPn _ ln cn))             = printFoundedToken ln cn  (": palabra reservada 'to'")
-printToken (ByTK (AlexPn _ ln cn))             = printFoundedToken ln cn  (": palabra reservada 'by'")
-printToken (ForTK (AlexPn _ ln cn))            = printFoundedToken ln cn  (": palabra reservada 'for'")
-printToken (WhileTK (AlexPn _ ln cn))          = printFoundedToken ln cn  (": palabra reservada 'while'")
-printToken (BeginTK (AlexPn _ ln cn))          = printFoundedToken ln cn  (": palabra reservada 'begin'")
-printToken (FuncTK (AlexPn _ ln cn))           = printFoundedToken ln cn  (": palabra reservada 'func'")
-printToken (ReturnTK (AlexPn _ ln cn))         = printFoundedToken ln cn  (": palabra reservada 'return'")
-printToken (RepeatTK (AlexPn _ ln cn))         = printFoundedToken ln cn  (": palabra reservada 'repeat'")
-printToken (ProgramTK (AlexPn _ ln cn))        = printFoundedToken ln cn  (": palabra reservada 'program'")
-printToken (WithTK (AlexPn _ ln cn))           = printFoundedToken ln cn  (": palabra reservada 'with'")
-printToken (DoTK (AlexPn _ ln cn))             = printFoundedToken ln cn  (": palabra reservada 'do'")
-printToken (EndTK (AlexPn _ ln cn))            = printFoundedToken ln cn  (": palabra reservada 'end'")
-printToken (TimesTK (AlexPn _ ln cn))          = printFoundedToken ln cn  (": palabra reservada 'times'")
-printToken (NotTK (AlexPn _ ln cn))            = printFoundedToken ln cn  (": palabra reservada 'not'")
-printToken (AndTK (AlexPn _ ln cn))            = printFoundedToken ln cn  (": palabra reservada 'and'")
-printToken (OrTK (AlexPn _ ln cn))             = printFoundedToken ln cn  (": palabra reservada 'or'")
-printToken (ReadTK (AlexPn _ ln cn))           = printFoundedToken ln cn  (": palabra reservada 'read'")
-printToken (FromTK (AlexPn _ ln cn))           = printFoundedToken ln cn  (": palabra reservada 'from'")
-printToken (WriteTK (AlexPn _ ln cn))          = printFoundedToken ln cn  (": palabra reservada 'write'")
-printToken (WritelnTK (AlexPn _ ln cn))        = printFoundedToken ln cn  (": palabra reservada 'writeln'")
-printToken (IfTK (AlexPn _ ln cn))             = printFoundedToken ln cn  (": palabra reservada 'if'")
-printToken (ThenTK (AlexPn _ ln cn))           = printFoundedToken ln cn  (": palabra reservada 'then'")
-printToken (ElseTK (AlexPn _ ln cn))           = printFoundedToken ln cn  (": palabra reservada 'else'")
-printToken (NumberTK (AlexPn _ ln cn))         = printFoundedToken ln cn  (": tipo de dato 'number'")
-printToken (BooleanTK (AlexPn _ ln cn))        = printFoundedToken ln cn  (": tipo de dato 'boolean'")
-printToken (TrueTK (AlexPn _ ln cn))           = printFoundedToken ln cn  (": literal booleano 'true'")
-printToken (FalseTK (AlexPn _ ln cn))          = printFoundedToken ln cn  (": literal booleano 'false'")
-printToken (DivTK (AlexPn _ ln cn))            = printFoundedToken ln cn  (": palabra reservada 'div'")
-printToken (ModTK (AlexPn _ ln cn))            = printFoundedToken ln cn  (": palabra reservada 'mod'")
-printToken (NumLiteralTK (AlexPn _ ln cn) s)   = printFoundedToken ln cn  (": literal numerico '"++ s ++ "'")
-printToken (StringTK (AlexPn _ ln cn) s)       = printFoundedToken ln cn  (": literal de string "++ s )
-printToken (IdTK (AlexPn _ ln cn) s)           = printFoundedToken ln cn  (": identificador '"++ s ++ "'")
-printToken (FuncIdTK (AlexPn _ ln cn) s)       = printFoundedToken ln cn  (": identificador de funcion '"++ s ++ "'")
-printToken (InvalidTK (AlexPn _ ln cn) s)      = printFoundedToken ln cn  (": input no reconocido '"++ s ++ "'")
+    deriving (Eq)
 
-printFoundedToken ln cn s = putStrLn("linea " ++ (show ln) ++", columna " ++ (show cn) ++ s)
+instance Show Token where
+    show (WhileTK _)        = "palabra reservada 'while'"
+    show (ForTK _)          = "palabra reservada 'for'"
+    show (FromTK _)         = "palabra reservada 'from'"
+    show (ToTK _)           = "palabra reservada 'to'"
+    show (ByTK _)           = "palabra reservada 'by'"
+    show (BeginTK _)        = "palabra reservada 'begin'"
+    show (FuncTK _)         = "palabra reservada 'func'"
+    show (ReturnTK _)       = "palabra reservada 'return'"
+    show (RepeatTK _)       = "palabra reservada 'repeat'"
+    show (ProgramTK _)      = "palabra reservada 'program'"
+    show (WithTK _)         = "palabra reservada 'with'"
+    show (DoTK _)           = "palabra reservada 'do'"
+    show (EndTK _)          = "palabra reservada 'end'"
+    show (TimesTK _)        = "palabra reservada 'times'"
+    show (NotTK _)          = "palabra reservada 'not'"
+    show (AndTK _)          = "palabra reservada 'and'"
+    show (OrTK _)           = "palabra reservada 'or'"
+    show (ReadTK _)         = "palabra reservada 'read'"
+    show (WriteTK _)        = "palabra reservada 'write'"
+    show (WritelnTK _)      = "palabra reservada 'writeln'"
+    show (IfTK _)           = "palabra reservada 'if'"
+    show (ThenTK _)         = "palabra reservada 'then'"
+    show (ElseTK _)         = "palabra reservada 'else'"
+    show (NumberTK _)       = "tipo de dato 'number'"
+    show (BooleanTK _)      = "tipo de dato 'boolean'"
+    show (TrueTK _)         = "literal booleano 'true'"
+    show (FalseTK _)        = "literal booleano 'false'"
+    show (DivTK _)          = "palabra reservada 'div'"
+    show (ModTK _)          = "palabra reservada 'mod'"
+    show (CommaTK _)        = "signo ','"
+    show (PlusTK _)         = "signo '+'"
+    show (EqualTK _)        = "signo '=='"
+    show (ProductTK _)      = "signo '*'"
+    show (MinusTK _)        = "signo '-'"
+    show (RestTK _)         = "signo '%'"
+    show (DivExacTK _)      = "signo '/'"
+    show (DifTK _)          = "signo '/='"
+    show (GreaterEqualTK _) = "signo '>='"
+    show (LessEqualTK _)    = "signo '<='"
+    show (GreaterTK _)      = "signo '>'"
+    show (LessTK _)         = "signo '<'"
+    show (AssignTK _)       = "signo '='"
+    show (ParenOpenTK _)    = "signo '('"
+    show (ParenCloseTK _)   = "signo ')'"
+    show (SemicolonTK _)    = "signo ';'"
+    show (TypeTK _)         = "signo '->'"
+    show (NumLiteralTK _ s) = "literal numerico '"++ s ++ "'"
+    show (StringTK _ s)     = "literal de string "++ s
+    show (IdTK _ s)         = "identificador '"++ s ++ "'"
+    show (FuncIdTK _ s)     = "identificador de funcion '"++ s ++ "'"
+    show (InvalidTK _ s)    = "input no reconocido '"++ s ++ "'"
+
+
+printToken tk = putStrLn $ "linea " ++ (show ln) ++", columna " ++ (show cn) ++ ": " ++ show tk
+    where
+        AlexPn _ ln cn = tokenPosn tk
 
 
 alexEOF :: Alex ()

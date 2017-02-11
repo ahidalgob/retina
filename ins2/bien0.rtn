@@ -1,8 +1,20 @@
+func f1()
+begin
+end;
+
+func plus(number op1, number op2) -> number
+begin
+    return op1 + op2;
+end;
+
 
 program
     with
-        number i = 3;
+        number i = 5 >= 4----3, j;
+        boolean p = true, q;
     do
         i = 4;
+        i = 4*f(3,4);
+        writeln 4, "hola", 4*f(3);
     end;
 end;
