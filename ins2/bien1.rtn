@@ -1,0 +1,19 @@
+func hola() -> number
+begin
+    with
+        number i;
+        boolean j;
+    do
+        i = chao(j);
+        return i;
+    end;
+end;
+func chao(boolean a) -> number
+begin
+    with
+    do
+      if (a == true) then return 1; else return 0; end;
+    end;
+end;
+program
+end;

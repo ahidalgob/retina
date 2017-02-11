@@ -9,12 +9,14 @@ end;
 
 
 program
+    write "meq", "ll";
     with
-        number i = 5 >= 4----3, j;
+        number i = 5 >= 4----3, j = f();
         boolean p = true, q;
     do
         i = 4;
         i = 4*f(3,4);
+        read y4;
         writeln 4, "hola", 4*f(3);
     end;
 end;

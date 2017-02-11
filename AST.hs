@@ -292,10 +292,10 @@ printExp n (IfThenRE exp exp1) = do
     printExp n $ IfThenE exp exp1
     
 printExp n (IfThenElseRE exp exp1 exp2) = do
-    printExp n $ IfThenElseRE exp exp1 exp2
+    printExp n $ IfThenElseE exp exp1 exp2
     
 printExp n (WhileRE exp exp1) = do
-    printExp n $ WhileRE exp exp1
+    printExp n $ WhileE exp exp1
     
 printExp n (ReturnE exp) = do
     putStrLnWithIdent n "Instruccion de return:"

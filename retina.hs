@@ -13,7 +13,6 @@ main = do
                         putStrLn "Error lexicografico (alex isn't happy)"
                         mapM_ printToken $ reverse $ tokenList ls
                     else do
-                        putStrLn ":)"
-                        -- mapM_ printToken $ reverse $ tokenList ls
+                        --mapM_ printToken $ reverse $ tokenList ls
                         printExp 0 . (P.parse) . reverse . tokenList $ ls
         Left e -> putStrLn e

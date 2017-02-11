@@ -1,0 +1,65 @@
+func ff(number a) -> boolean
+begin
+    with
+        number x = 3;
+    do
+        repeat x times
+            return x;
+            f();
+            f(a,b,c*3);
+        end;
+        for i from 0 to x do
+            return i;
+        end;
+        for i from 0 to x by 2 do
+            return i;
+        end;
+        
+        if x then
+            return true;
+        end;
+        
+        if x then
+            write "yes";
+            return false;
+        else
+            write "no";
+            return 0;
+        end;
+        
+        while x > 0 do
+            x = x-1;
+            return y;
+        end;
+        return -10;
+    end;
+end;
+program
+    with
+        number x = 3;
+    do
+        repeat x times
+            write x;
+        end;
+        for i from 0 to x do
+            write i;
+        end;
+        for i from 0 to x by 2 do
+            write i;
+        end;
+        
+        if x then
+            write ":)";
+        end;
+        
+        if x then
+            write "yes";
+        else
+            write "no";
+        end;
+        
+        while x > 0 do
+            x = x-1;
+        end;
+    end;
+end;

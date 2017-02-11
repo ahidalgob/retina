@@ -166,7 +166,7 @@ IR  : with LD do LIR end ';'                { WithDoRE $2 $4 }
     | writeln string LPW                    { WritelnE $ PWSE $2 : listLPWE $3 }
     | writeln E LPW                         { WritelnE $ PWEE $2 : listLPWE $3 }
     | read id ';'                           { ReadE $2 }
-    | return E ';'                             { ReturnE $2 }
+    | return E ';'                          { ReturnE $2 }
     
     
 LPW : ';'                               { LPWE [] }
