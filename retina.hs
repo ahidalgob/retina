@@ -1,9 +1,12 @@
+-- Retina - Proyecto de Traductores
+-- Lexer
+-- Augusto Hidalgo 13-10665
+-- Genesis Kufatty 13-10708
+
 import Lexer
 import AST
 import qualified Parser as P
 import System.Environment
-
-main :: IO ()
 
 main = do
     s <- getArgs >>= (readFile . head)

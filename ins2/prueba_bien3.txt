@@ -1,14 +1,16 @@
 #PRUEBA TOKENS:
 program
-
+    with
 	boolean b1 = true and false;
-	read true;
+	do
+    read asd;
 	read b1;
-	read 2390021;
+	read asd;
 	write b1,b2,"teamodemasiadoamor:(","  ",23 mod 4;
 	write "hola";
 	write b1;
  	writeln b1,b2,"teamodemasiadoamor:(","  ",23 mod 4;
 	writeln "hola";
 	writeln b1;
-	
+    end;
+end;

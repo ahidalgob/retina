@@ -1,3 +1,8 @@
+-- Retina - Proyecto de Traductores
+-- Lexer
+-- Augusto Hidalgo 13-10665
+-- Genesis Kufatty 13-10708
+
 module AST where
 import Control.Monad
 

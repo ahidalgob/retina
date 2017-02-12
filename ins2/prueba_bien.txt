@@ -7,6 +7,8 @@ begin
 end;
 
 program
+    with
 	boolean hols_d=(1==2); number n1= (1),n2;
-	fun();
-end;
+	do
+    fun();
+end;end;
