@@ -1,0 +1,3 @@
+with # Unexpected 'with'
+    int x;
+do   end;

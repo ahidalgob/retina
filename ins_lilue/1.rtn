@@ -1,0 +1,35 @@
+func min(number x, number y) -> number
+begin
+    with
+        boolean b;
+    do
+        b = x < y;
+        if b then
+            return x;
+        end;
+        return y;
+    end;
+end;
+
+func circle(number radio)
+begin
+    arc(360, radio);
+end;
+
+program
+    writeln "Insert a number : ";
+    with
+        number n;
+    do
+        read n; # I suggest that this number be a multiple of 360
+        with
+            number angle = n;
+        do
+            while angle <= 360 do
+                rotater(n);
+                circle(100);
+                angle = angle + n;
+            end;
+        end;
+    end;
+end;
