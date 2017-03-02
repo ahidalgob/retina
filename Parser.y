@@ -141,21 +141,24 @@ LI  : {-empty-}         { LIE [] }
 LIR : {-empty-}         { LIRE [] }
     | IR LIR            { LIRE $ $1 : listLIRE $2}
     | ';' LIR           { $2 }
-    
-I   : with LD do LI end ';'                 { WithDoE $2 $4 }
-    | repeat E times LI end ';'             { RepeatE $2 $4 }
-    | fid '(' LV ')' ';'                    { FuncE $1 $3 }
-    | id '=' E ';'                          { AssignE $1 $3 }
-    | for id from E to E do LI end ';'      { ForE $2 $4 $6 $8 }
+
+
+I   : with LD do LI end ';'                    { WithDoE $2 $4 }
+    | repeat E times LI end ';'               { RepeatE $2 $4 }
+    --| fid '(' LV ')' ';'                     { FuncE $1 $3 }
+    | id '=' E ';'                            { AssignE $1 $3 }
+    | for id from E to E do LI end ';'       { ForE $2 $4 $6 $8 }
     | for id from E to E by E do LI end ';' { ForByE $2 $4 $6 $8 $10 }
-    | if E then LI end ';'                  { IfThenE $2 $4 }
-    | if E then LI else LI end ';'          { IfThenElseE $2 $4 $6 }
-    | while E do LI end ';'                 { WhileE $2 $4}
-    | write string LPW                      { WriteE $ PWSE $2 : listLPWE $3 }
-    | write E LPW                           { WriteE $ PWEE $2 : listLPWE $3 }
-    | writeln string LPW                    { WriteE $ PWSE $2 : listLPWE $3 }
-    | writeln E LPW                         { WriteE $ PWEE $2 : listLPWE $3 }
-    | read id ';'                           { ReadE $2 }
+    | if E then LI end ';'                    { IfThenE $2 $4 }
+    | if E then LI else LI end ';'            { IfThenElseE $2 $4 $6 }
+    | while E do LI end ';'                   { WhileE $2 $4}
+    | write string LPW                         { WriteE $ PWSE $2 : listLPWE $3 }
+    | write E LPW                             { WriteE $ PWEE $2 : listLPWE $3 }
+    | writeln string LPW                       { WriteE $ PWSE $2 : listLPWE $3 }
+    | writeln E LPW                           { WriteE $ PWEE $2 : listLPWE $3 }
+    | read id ';'                              { ReadE $2 }
+    | E ';'                                    { ExprE $1 }
+
     
 IR  : with LD do LIR end ';'                { WithDoRE $2 $4 }
     | repeat E times LIR end ';'            { RepeatRE $2 $4 }
