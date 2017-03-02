@@ -23,6 +23,7 @@ data Exp =
     IdE String                          |
     LogicE Exp String Exp               |
     FuncE String Exp                    |
+    ExprE Exp                           |
     
     LVE {listLVE :: [Exp]}              |
     LVNVE {listLVNVE :: [Exp]}          |
@@ -316,4 +317,10 @@ printExp n (PWSE s) = do
 printExp n (PWEE exp) = do
     printExp n exp
     
+
+--NUEEEEEEEEVO 
+
+printExp n (ExprE exp) = do
+    putStrLnWithIdent n "Instruccion de expresion:"
+    printExp (n+1) exp
 
