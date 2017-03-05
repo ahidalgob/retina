@@ -79,8 +79,8 @@ P : LDF program LI end ';'  { PE $1 $3 }
 LDF : DF LDF    { LDFE $ $1 : listLDFE $2 }
     | {-empty-} { LDFE [] }
 
-DF  : func fid '(' LP ')' begin LIR end ';'         { DFE $2 $4 $7 }
-    | func fid '(' LP ')' '->' T begin LIR end ';'  { RDFE $2 $4 $7 $9 }
+DF  : func fid '(' LP ')' begin LI end ';'         { DFE $2 $4 $7 }
+    | func fid '(' LP ')' '->' T begin LI end ';'  { RDFE $2 $4 $7 $9 }
 
 LP : {-empty-}      { LPE [] }
    | LPNV           { LPE $ listLPNVE $1 }
@@ -138,10 +138,6 @@ LI  : {-empty-}         { LIE [] }
     | I LI              { LIE $ $1 : listLIE $2}
     | ';' LI            { $2 }
     
-LIR : {-empty-}         { LIRE [] }
-    | IR LIR            { LIRE $ $1 : listLIRE $2}
-    | ';' LIR           { $2 }
-    
 I   : with LD do LI end ';'                 { WithDoE $2 $4 }
     | repeat E times LI end ';'             { RepeatE $2 $4 }
     | fid '(' LV ')' ';'                    { FuncE $1 $3 }
@@ -153,26 +149,10 @@ I   : with LD do LI end ';'                 { WithDoE $2 $4 }
     | while E do LI end ';'                 { WhileE $2 $4}
     | write string LPW                      { WriteE $ PWSE $2 : listLPWE $3 }
     | write E LPW                           { WriteE $ PWEE $2 : listLPWE $3 }
-    | writeln string LPW                    { WriteE $ PWSE $2 : listLPWE $3 }
-    | writeln E LPW                         { WriteE $ PWEE $2 : listLPWE $3 }
-    | read id ';'                           { ReadE $2 }
-    
-IR  : with LD do LIR end ';'                { WithDoRE $2 $4 }
-    | repeat E times LIR end ';'            { RepeatRE $2 $4 }
-    | fid '(' LV ')' ';'                    { FuncE $1 $3 }
-    | id '=' E ';'                          { AssignE $1 $3 }
-    | for id from E to E do LIR end ';'     { ForRE $2 $4 $6 $8 }
-    | for id from E to E by E do LIR end ';'{ ForByRE $2 $4 $6 $8 $10 }
-    | if E then LIR end ';'                 { IfThenRE $2 $4 }
-    | if E then LIR else LIR end ';'        { IfThenElseRE $2 $4 $6 }
-    | while E do LIR end ';'                { WhileRE $2 $4}
-    | write string LPW                      { WriteE $ PWSE $2 : listLPWE $3 }
-    | write E LPW                           { WriteE $ PWEE $2 : listLPWE $3 }
     | writeln string LPW                    { WritelnE $ PWSE $2 : listLPWE $3 }
     | writeln E LPW                         { WritelnE $ PWEE $2 : listLPWE $3 }
     | read id ';'                           { ReadE $2 }
     | return E ';'                          { ReturnE $2 }
-    
     
 LPW : ';'                               { LPWE [] }
     | ',' string LPW                    { LPWE $ PWSE $2 : listLPWE $3 }
