@@ -40,7 +40,6 @@ data Exp =
     
     
     LIE {listLIE :: [Exp]}              |
-    LIRE {listLIRE :: [Exp]}            |
     
     
     WithDoE Exp Exp                     |
@@ -54,15 +53,6 @@ data Exp =
     WriteE {listWriteE :: [Exp]}        |
     WritelnE {listWritelnE :: [Exp]}    |
     ReadE String                        |
-    
-    
-    WithDoRE Exp Exp                    |
-    RepeatRE Exp Exp                    |
-    ForRE String Exp Exp Exp            |
-    ForByRE String Exp Exp Exp Exp      |
-    IfThenRE Exp Exp                    |
-    IfThenElseRE Exp Exp Exp            |
-    WhileRE Exp Exp                     |
     
     ReturnE Exp                         |
     
@@ -204,10 +194,6 @@ printExp n (LIE li) = do
     putStrLnWithIdent n "Lista de instrucciones:"
     mapM_ (printExp (n+1)) li
     
-printExp n (LIRE lir) = do
-    putStrLnWithIdent n "Lista de instrucciones:"
-    mapM_ (printExp (n+1)) lir
-
 printExp n (WithDoE exp exp1) = do
     putStrLnWithIdent n "Bloque with-do:"
     printExp (n+1) exp
@@ -282,27 +268,6 @@ printExp n (ReadE id) = do
     putStrLnWithIdent n "Instruccion de entrada:"
     printId (n+1) id
 
-printExp n (WithDoRE exp exp1) = do
-    printExp n $ WithDoE exp exp1
-    
-printExp n (RepeatRE exp exp1) = do
-    printExp n $ RepeatE exp exp1
-    
-printExp n (ForRE s exp exp1 exp2) = do
-    printExp n $ ForE s exp exp1 exp2
-
-printExp n (ForByRE s exp exp1 exp2 exp3) = do
-    printExp n $ ForByE s exp exp1 exp2 exp3
-    
-printExp n (IfThenRE exp exp1) = do
-    printExp n $ IfThenE exp exp1
-    
-printExp n (IfThenElseRE exp exp1 exp2) = do
-    printExp n $ IfThenElseE exp exp1 exp2
-    
-printExp n (WhileRE exp exp1) = do
-    printExp n $ WhileE exp exp1
-    
 printExp n (ReturnE exp) = do
     putStrLnWithIdent n "Instruccion de return:"
     printExp (n+1) exp
