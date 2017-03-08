@@ -6,83 +6,83 @@
 module AST where
 import Control.Monad
 
-data Exp =
+data ExpN =
     IdN String                          |
     TrueN                               |
     FalseN                              |
-    ParN Exp                            |
-    ComparN Exp String Exp (Int,Int)            |
-    NotN Exp (Int,Int)                         |
-    LogicN Exp String Exp (Int,Int)              |
-    FuncN String ExpList                |
-    MinusN Exp                          |
-    AritN Exp String Exp (Int,Int)              |
+    ParN ExpN                            |
+    ComparN ExpN String ExpN (Int,Int)            |
+    NotN ExpN (Int,Int)                         |
+    LogicN ExpN String ExpN (Int,Int)              |
+    FuncN String ExpListN                |
+    MinusN ExpN                          |
+    AritN ExpN String ExpN (Int,Int)              |
     NumberLiteralN String
     deriving Show
 
-data Type =
+data TypeN =
     BooleanN                            |
     NumberN
     deriving Show
 
-data Constr = 
-    PN Constr InstrList                 |
-    LDFN {listLDFN :: [FuncDef]}        |
-    LDN {listLDN :: [(Type, [Var])]}
+data ConstrN = 
+    PN ConstrN InstrListN                 |
+    LDFN {listLDFN :: [FuncDefN]}        |
+    LDN {listLDN :: [(TypeN, [VarN])]}
     deriving Show
 
-data FuncDef =
-    DFN String ParamList InstrList (Int,Int)    |
-    RDFN String ParamList Type InstrList (Int,Int)
+data FuncDefN =
+    DFN String ParamListN InstrListN (Int,Int)    |
+    RDFN String ParamListN TypeN InstrListN (Int,Int)
     deriving Show
 
-data ParamList = 
-    LPN {listLPN :: [(Type, String)]}    |
-    LPNVN {listLPNVN :: [(Type, String)]}
+data ParamListN = 
+    LPN {listLPN :: [(TypeN, String)]}    |
+    LPNVN {listLPNVN :: [(TypeN, String)]}
     deriving Show
 
-data ExpList =
-    LEN {listLEN :: [Exp]}              |
-    LENVN {listLENVN :: [Exp]}
+data ExpListN =
+    LEN {listLEN :: [ExpN]}              |
+    LENVN {listLENVN :: [ExpN]}
     deriving Show
 
-data VarList =
-    LVarN {listLVN :: [Var]}
+data VarListN =
+    LVarN {listLVN :: [VarN]}
     deriving Show
 
-data Var =
+data VarN =
     VarN String                          |
-    VarValN String Exp
+    VarValN String ExpN
     deriving Show
 
-data InstrList = 
-    LIN {listLIN :: [Instr]}
+data InstrListN = 
+    LIN {listLIN :: [InstrN]}
     deriving Show
 
-data WordList =
-    LPWN {listLPWN :: [Word]}
+data WordListN =
+    LPWN {listLPWN :: [WordN]}
     deriving Show
 
-data Word =
-    PWEN Exp                            |
+data WordN =
+    PWEN ExpN                            |
     PWSN String
     deriving Show
 
 
-data Instr =
-    WithDoN Constr InstrList (Int,Int)                   |
-    RepeatN Exp InstrList                     |
-    AssignN String Exp                  |
-    ForN String Exp Exp InstrList             |
-    ForByN String Exp Exp Exp InstrList       |
-    IfThenN Exp InstrList (Int,Int)                    |
-    IfThenElseN Exp InstrList InstrList (Int,Int)            |
-    WhileN Exp InstrList                      |
-    WriteN {listWriteN :: [Word]}        |
-    WritelnN {listWritelnN :: [Word]}    |
+data InstrN =
+    WithDoN ConstrN InstrListN (Int,Int)                   |
+    RepeatN ExpN InstrListN                     |
+    AssignN String ExpN                  |
+    ForN String ExpN ExpN InstrListN             |
+    ForByN String ExpN ExpN ExpN InstrListN       |
+    IfThenN ExpN InstrListN (Int,Int)                    |
+    IfThenElseN ExpN InstrListN InstrListN (Int,Int)            |
+    WhileN ExpN InstrListN                      |
+    WriteN {listWriteN :: [WordN]}        |
+    WritelnN {listWritelnN :: [WordN]}    |
     ReadN String                        |
-    ReturnN Exp (Int,Int)                     |
-    ExprN Exp
+    ReturnN ExpN (Int,Int)                     |
+    ExprN ExpN
     deriving Show
 
 ident = "|  "
@@ -93,233 +93,233 @@ putStrLnWithIdent n s = (replicateM_ n $ putStr ident) >> putStrLn s
 
 printId n s = putStrLnWithIdent n $ "Identificador: " ++ s
 
-printExp :: Int -> Exp -> IO()
-printExp n (IdN s) = do
+printExpN :: Int -> ExpN -> IO()
+printExpN n (IdN s) = do
     printId n s
 
-printExp n (TrueN) = do
+printExpN n (TrueN) = do
     putStrLnWithIdent n "Literal booleano: true"
      
-printExp n (FalseN) = do
+printExpN n (FalseN) = do
     putStrLnWithIdent n "Literal booleano: false"
 
-printExp n (ParN exp) = do
+printExpN n (ParN exp) = do
     putStrLnWithIdent n "Expresion entre parentesis:"
-    printExp (n+1) exp
+    printExpN (n+1) exp
      
-printExp n (ComparN exp s exp1 _) = do
+printExpN n (ComparN exp s exp1 _) = do
     putStrLnWithIdent n "Operacion de comparacion:"
     putStrLnWithIdent (n+1) $ "Comparador: " ++ s
     putStrLnWithIdent (n+1) "Lado izquierdo:"
-    printExp (n+2) exp
+    printExpN (n+2) exp
     putStrLnWithIdent (n+1) "Lado derecho:"
-    printExp (n+2) exp1
+    printExpN (n+2) exp1
     
-printExp n (NotN exp _) = do
+printExpN n (NotN exp _) = do
     putStrLnWithIdent n "Negacion booleana:"
-    printExp (n+2) exp
+    printExpN (n+2) exp
 
-printExp n (LogicN exp s exp1 _) = do
+printExpN n (LogicN exp s exp1 _) = do
     putStrLnWithIdent n "Operacion binaria logica:"
     putStrLnWithIdent (n+1) $ "Operador: " ++ s
     putStrLnWithIdent (n+1) "Lado izquierdo:"
-    printExp (n+2) exp
+    printExpN (n+2) exp
     putStrLnWithIdent (n+1) "Lado derecho:"
-    printExp (n+2) exp1
+    printExpN (n+2) exp1
     
-printExp n (FuncN s exp) = do 
+printExpN n (FuncN s exp) = do 
     putStrLnWithIdent n "Llamada de funcion:"
     printId (n+1) s
-    printExpList (n+1) exp
+    printExpListN (n+1) exp
 
-printExp n (MinusN exp) = do
+printExpN n (MinusN exp) = do
     putStrLnWithIdent n "Menos unario:"
-    printExp (n+1) exp
+    printExpN (n+1) exp
     
-printExp n (AritN exp s exp1 _) = do
+printExpN n (AritN exp s exp1 _) = do
     putStrLnWithIdent n "Operacion binaria aritmetica:"
     putStrLnWithIdent (n+1) $ "Operador: " ++ s
     putStrLnWithIdent (n+1) "Lado izquierdo:"
-    printExp (n+2) exp
+    printExpN (n+2) exp
     putStrLnWithIdent (n+1) "Lado derecho:"
-    printExp (n+2) exp1
+    printExpN (n+2) exp1
     
-printExp n (NumberLiteralN s) = do
+printExpN n (NumberLiteralN s) = do
     putStrLnWithIdent n $ "Literal numerico: " ++ s
 
 
-printType :: Int -> Type -> IO()
-printType n (BooleanN) = do
+printTypeN :: Int -> TypeN -> IO()
+printTypeN n (BooleanN) = do
     putStrLnWithIdent n "Tipo de dato: boolean"
      
-printType n (NumberN) = do
+printTypeN n (NumberN) = do
     putStrLnWithIdent n "Tipo de dato: number"
 
 
-printConstr :: Int -> Constr -> IO()
-printConstr n (PN ldf lblock) = do
+printConstrN :: Int -> ConstrN -> IO()
+printConstrN n (PN ldf lblock) = do
     putStrLnWithIdent n "Constructor de Programa:"
-    printConstr (n+1) ldf
-    printInstrList (n+1) lblock
+    printConstrN (n+1) ldf
+    printInstrListN (n+1) lblock
     
-printConstr n (LDFN dfl) = do
+printConstrN n (LDFN dfl) = do
     putStrLnWithIdent n "Lista de definiciones de funciones:"
-    mapM_ (printFuncDef (n+1)) dfl
+    mapM_ (printFuncDefN (n+1)) dfl
 
-printConstr n (LDN ld) = do
+printConstrN n (LDN ld) = do
     putStrLnWithIdent n "Declaraciones de datos:"
     mapM_ printDatos ld
     where 
         printDatos (exp, ldst) = do
-            printType (n+1) exp
-            mapM_ (printVar (n+2)) ldst
+            printTypeN (n+1) exp
+            mapM_ (printVarN (n+2)) ldst
 
 
-printFuncDef :: Int -> FuncDef -> IO()
-printFuncDef n (DFN id lp lir _) = do
+printFuncDefN :: Int -> FuncDefN -> IO()
+printFuncDefN n (DFN id lp lir _) = do
     putStrLnWithIdent n "Definicion de funcion:"
     printId (n+1) id
-    printParamList (n+1) lp
+    printParamListN (n+1) lp
     putStrLnWithIdent (n+1) "Cuerpo de la funcion:"
-    printInstrList (n+2) lir    
+    printInstrListN (n+2) lir    
     
-printFuncDef n (RDFN id lp ret lir _) = do
+printFuncDefN n (RDFN id lp ret lir _) = do
     putStrLnWithIdent n "Definicion de funcion:"
     printId (n+1) id
-    printParamList (n+1) lp
+    printParamListN (n+1) lp
     putStrLnWithIdent (n+1) "Tipo de retorno:"
-    printType (n+2) ret
+    printTypeN (n+2) ret
     putStrLnWithIdent (n+1) "Cuerpo de la funcion:"
-    printInstrList (n+2) lir
+    printInstrListN (n+2) lir
     
 
-printParamList :: Int -> ParamList -> IO()
-printParamList n (LPN pl) = do 
+printParamListN :: Int -> ParamListN -> IO()
+printParamListN n (LPN pl) = do 
     putStrLnWithIdent n "Lista de parametros de la funcion: "
     mapM_ (printParam) pl
     where 
         printParam (exp, s) = do
-            printType (n+1) exp
+            printTypeN (n+1) exp
             printId (n+1) s
     
 
-printExpList :: Int -> ExpList -> IO()
-printExpList n (LEN lv) = do
+printExpListN :: Int -> ExpListN -> IO()
+printExpListN n (LEN lv) = do
     putStrLnWithIdent n "Lista de expresiones:"
-    mapM_ (printExp (n+1)) lv
+    mapM_ (printExpN (n+1)) lv
 
 
-printVar :: Int -> Var -> IO()
-printVar n (VarN s) = do
+printVarN :: Int -> VarN -> IO()
+printVarN n (VarN s) = do
     putStrLnWithIdent n "Declaracion con identificador:"
     printId (n+1) s
 
-printVar n (VarValN s exp) = do
+printVarN n (VarValN s exp) = do
     putStrLnWithIdent n "Declaracion con identificador y valor:"
     printId (n+1) s
     putStrLnWithIdent (n+1) "Valor:"
-    printExp (n+2) exp
+    printExpN (n+2) exp
     
-printInstrList :: Int -> InstrList -> IO()
-printInstrList n (LIN li) = do 
+printInstrListN :: Int -> InstrListN -> IO()
+printInstrListN n (LIN li) = do 
     putStrLnWithIdent n "Lista de instrucciones:"
-    mapM_ (printInstr (n+1)) li
+    mapM_ (printInstrN (n+1)) li
     
-printInstr :: Int -> Instr -> IO()
-printInstr n (WithDoN exp exp1 _) = do
+printInstrN :: Int -> InstrN -> IO()
+printInstrN n (WithDoN exp exp1 _) = do
     putStrLnWithIdent n "Bloque with-do:"
-    printConstr (n+1) exp
-    printInstrList (n+1) exp1
+    printConstrN (n+1) exp
+    printInstrListN (n+1) exp1
     
-printInstr n (RepeatN exp exp1) = do
+printInstrN n (RepeatN exp exp1) = do
     putStrLnWithIdent n "Instruccion repeat:"
     putStrLnWithIdent (n+1) "Cantidad de repeticiones:"
-    printExp (n+2) exp
-    printInstrList (n+1) exp1
+    printExpN (n+2) exp
+    printInstrListN (n+1) exp1
     
-printInstr n (AssignN s exp1) = do
+printInstrN n (AssignN s exp1) = do
     putStrLnWithIdent n "Instruccion de asignacion:"
     printId (n+1) s
     putStrLnWithIdent (n+1) "Valor:"
-    printExp (n+2) exp1
+    printExpN (n+2) exp1
     
-printInstr n (ForN s exp exp1 exp2) = do
+printInstrN n (ForN s exp exp1 exp2) = do
     putStrLnWithIdent n "Instruccion for:"
     putStrLnWithIdent (n+1) "Variable iteradora:"
     printId (n+2) s
     putStrLnWithIdent (n+1) "Desde:"
-    printExp (n+2) exp
+    printExpN (n+2) exp
     putStrLnWithIdent (n+1) "Hasta:"
-    printExp (n+2) exp1
-    printInstrList (n+1) exp2
+    printExpN (n+2) exp1
+    printInstrListN (n+1) exp2
 
-printInstr n (ForByN s exp exp1 exp2 exp3) = do
+printInstrN n (ForByN s exp exp1 exp2 exp3) = do
     putStrLnWithIdent n "Instruccion for-by:"
     putStrLnWithIdent (n+1) "Variable iteradora:"
     printId (n+2) s
     putStrLnWithIdent (n+1) "Desde:"
-    printExp (n+2) exp
+    printExpN (n+2) exp
     putStrLnWithIdent (n+1) "Hasta:"
-    printExp (n+2) exp1
+    printExpN (n+2) exp1
     putStrLnWithIdent (n+1) "Paso:"
-    printExp (n+2) exp2
-    printInstrList (n+1) exp3
+    printExpN (n+2) exp2
+    printInstrListN (n+1) exp3
 
-printInstr n (IfThenN exp exp1 _) = do
+printInstrN n (IfThenN exp exp1 _) = do
     putStrLnWithIdent n "Instruccion if-then:"
     putStrLnWithIdent (n+1) "Condicion:"
-    printExp (n+2) exp
-    printInstrList (n+1) exp1
+    printExpN (n+2) exp
+    printInstrListN (n+1) exp1
     
-printInstr n (IfThenElseN exp exp1 exp2 _) = do
+printInstrN n (IfThenElseN exp exp1 exp2 _) = do
     putStrLnWithIdent n "Instruccion if-then-else:"
     putStrLnWithIdent (n+1) "Condicion:"
-    printExp (n+2) exp
+    printExpN (n+2) exp
     putStrLnWithIdent (n+1) "Bloque 1 (then):"
-    printInstrList (n+2) exp1
+    printInstrListN (n+2) exp1
     putStrLnWithIdent (n+1) "Bloque 2 (else):"
-    printInstrList (n+2) exp2
+    printInstrListN (n+2) exp2
     
-printInstr n (WhileN exp exp1) = do
+printInstrN n (WhileN exp exp1) = do
     putStrLnWithIdent n "Instruccion while-do:"
     putStrLnWithIdent (n+1) "Condicion:"
-    printExp (n+2) exp
-    printInstrList (n+1) exp1
+    printExpN (n+2) exp
+    printInstrListN (n+1) exp1
 
-printInstr n (WriteN l) = do
+printInstrN n (WriteN l) = do
     putStrLnWithIdent n "Instruccion de salida:"
     putStrLnWithIdent (n+1) "Lista de expresiones:"
-    mapM_ (printWord (n+2)) l
+    mapM_ (printWordN (n+2)) l
     
-printInstr n (WritelnN l) = do
+printInstrN n (WritelnN l) = do
     putStrLnWithIdent n "Instruccion de salida con salto:"
     putStrLnWithIdent (n+1) "Lista de expresiones:"
-    mapM_ (printWord (n+2)) l
+    mapM_ (printWordN (n+2)) l
 
-printInstr n (ReadN id) = do
+printInstrN n (ReadN id) = do
     putStrLnWithIdent n "Instruccion de entrada:"
     printId (n+1) id
 
-printInstr n (ReturnN exp _) = do
+printInstrN n (ReturnN exp _) = do
     putStrLnWithIdent n "Instruccion de return:"
-    printExp (n+1) exp
+    printExpN (n+1) exp
 
-printInstr n (ExprN exp) = do
+printInstrN n (ExprN exp) = do
     putStrLnWithIdent n "Instruccion de expresion:"
-    printExp (n+1) exp
+    printExpN (n+1) exp
 
 
-printWordList :: Int -> WordList -> IO()
-printWordList n (LPWN l) = do
+printWordListN :: Int -> WordListN -> IO()
+printWordListN n (LPWN l) = do
     putStrLnWithIdent n "Expresiones:"
-    mapM_ (printWord (n+1)) l
+    mapM_ (printWordN (n+1)) l
     
 
-printWord :: Int -> Word -> IO()
-printWord n (PWSN s) = do
+printWordN :: Int -> WordN -> IO()
+printWordN n (PWSN s) = do
     putStrLnWithIdent n $ "Cadena de caracteres: " ++ s
     
-printWord n (PWEN exp) = do
-    printExp n exp
+printWordN n (PWEN exp) = do
+    printExpN n exp
     
 
