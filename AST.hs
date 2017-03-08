@@ -7,42 +7,42 @@ module AST where
 import Control.Monad
 
 data ExpN =
-    IdN String                          |
-    TrueN                               |
-    FalseN                              |
-    ParN ExpN                            |
-    ComparN ExpN String ExpN (Int,Int)            |
-    NotN ExpN (Int,Int)                         |
-    LogicN ExpN String ExpN (Int,Int)              |
-    FuncN String ExpListN                |
-    MinusN ExpN                          |
-    AritN ExpN String ExpN (Int,Int)              |
+    IdN String                                      |
+    TrueN                                           |
+    FalseN                                          |
+    ParN ExpN                                       |
+    ComparN ExpN String ExpN (Int,Int)              |
+    NotN ExpN (Int,Int)                             |
+    LogicN ExpN String ExpN (Int,Int)               |
+    FuncN String ExpListN                           |
+    MinusN ExpN                                     |
+    AritN ExpN String ExpN (Int,Int)                |
     NumberLiteralN String
     deriving Show
 
 data TypeN =
-    BooleanN                            |
+    BooleanN                                        |
     NumberN
     deriving Show
 
 data ConstrN = 
-    PN ConstrN InstrListN                 |
-    LDFN {listLDFN :: [FuncDefN]}        |
+    PN ConstrN InstrListN                           |
+    LDFN {listLDFN :: [FuncDefN]}                   |
     LDN {listLDN :: [(TypeN, [VarN])]}
     deriving Show
 
 data FuncDefN =
-    DFN String ParamListN InstrListN (Int,Int)    |
+    DFN String ParamListN InstrListN (Int,Int)      |
     RDFN String ParamListN TypeN InstrListN (Int,Int)
     deriving Show
 
 data ParamListN = 
-    LPN {listLPN :: [(TypeN, String)]}    |
+    LPN {listLPN :: [(TypeN, String)]}              |
     LPNVN {listLPNVN :: [(TypeN, String)]}
     deriving Show
 
 data ExpListN =
-    LEN {listLEN :: [ExpN]}              |
+    LEN {listLEN :: [ExpN]}                         |
     LENVN {listLENVN :: [ExpN]}
     deriving Show
 
@@ -51,7 +51,7 @@ data VarListN =
     deriving Show
 
 data VarN =
-    VarN String                          |
+    VarN String                                     |
     VarValN String ExpN
     deriving Show
 
@@ -64,24 +64,24 @@ data WordListN =
     deriving Show
 
 data WordN =
-    PWEN ExpN                            |
+    PWEN ExpN                                       |
     PWSN String
     deriving Show
 
 
 data InstrN =
-    WithDoN ConstrN InstrListN (Int,Int)                   |
-    RepeatN ExpN InstrListN                     |
-    AssignN String ExpN                  |
-    ForN String ExpN ExpN InstrListN             |
-    ForByN String ExpN ExpN ExpN InstrListN       |
-    IfThenN ExpN InstrListN (Int,Int)                    |
+    WithDoN ConstrN InstrListN (Int,Int)                        |
+    RepeatN ExpN InstrListN                                     |
+    AssignN String ExpN                                         |
+    ForN String ExpN ExpN InstrListN                            |
+    ForByN String ExpN ExpN ExpN InstrListN                     |
+    IfThenN ExpN InstrListN (Int,Int)                           |
     IfThenElseN ExpN InstrListN InstrListN (Int,Int)            |
-    WhileN ExpN InstrListN                      |
-    WriteN {listWriteN :: [WordN]}        |
-    WritelnN {listWritelnN :: [WordN]}    |
-    ReadN String                        |
-    ReturnN ExpN (Int,Int)                     |
+    WhileN ExpN InstrListN                                      |
+    WriteN {listWriteN :: [WordN]}                              |
+    WritelnN {listWritelnN :: [WordN]}                          |
+    ReadN String                                                |
+    ReturnN ExpN (Int,Int)                                      |
     ExprN ExpN
     deriving Show
 

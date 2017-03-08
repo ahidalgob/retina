@@ -1,11 +1,12 @@
+module OurMonad where
+
 import Control.Monad.Error
-import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Writer
 import Control.Monad
 import Data.Either
 
-data OurError = Errr
+data OurError = Errr String deriving Show
 instance Error OurError
 
 data OurType = Number | Boolean deriving Eq
@@ -20,7 +21,18 @@ data OurState = OurState {getSymTable::SymTable, getNestedD::Int, getReturnT::(M
 
 type OurMonad a = StateT OurState (WriterT String (Either OurError)) a
 
+runOurMonad :: OurMonad a -> OurState -> Either OurError ((a, OurState), String)
+runOurMonad f a = runWriterT (runStateT f a)
 
+emptyState = OurState (SymTable [] []) 0 Nothing
+
+getLog f a = snd $ getRight $ runOurMonad f a `catchError` (\e -> return $ (((), emptyState), show e ++ "\n"))
+    where
+        getRight (Right x) = x
+
+
+getNestedDegree :: OurMonad Int
+getNestedDegree = state (\os -> (getNestedD os,os))
 
 lookInList :: String -> [(String, OurType)] -> Maybe OurType
 lookInList s [] = Nothing
@@ -38,11 +50,11 @@ lookInSymTable s = state (\os -> (msum $ map (lookInList s) (map (getList) (getS
 
 newScope :: OurMonad ()
 newScope = state (\os -> let newScopes = (Scope []):(getScopes.getSymTable $ os)
-                         in ((),OurState (SymTable newScopes (getFuncSigns $ getSymTable os)) (getNestedD os) (getReturnT os)))
+                         in ((),OurState (SymTable newScopes (getFuncSigns $ getSymTable os)) ((getNestedD os)+1) (getReturnT os)))
 
 removeScope :: OurMonad ()
 removeScope = state (\os -> let scopes' = tail.getScopes.getSymTable $ os
-                            in ((), OurState (SymTable scopes' (getFuncSigns $ getSymTable os)) (getNestedD os) (getReturnT os)))
+                            in ((), OurState (SymTable scopes' (getFuncSigns $ getSymTable os)) ((getNestedD os)-1) (getReturnT os)))
 
 addToSymTable :: (String, OurType) -> OurMonad ()
 addToSymTable pair = state (\os -> let scopes' = getScopes.getSymTable $ os
@@ -73,3 +85,8 @@ checkFunction s list = state (\os -> let listF = getParamList $ head $ filter ((
 
 setReturnT :: Maybe OurType -> OurMonad ()
 setReturnT typeR = state (\os -> ((),OurState (getSymTable os) (getNestedD os) typeR) )
+
+lastScopeToLog :: String -> OurMonad ()
+lastScopeToLog scopeName = do
+    nested <- getNestedDegree 
+    tell $ (replicate nested ' ')++"Alcance "++scopeName++"\n"
