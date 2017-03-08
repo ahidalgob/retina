@@ -14,7 +14,7 @@ data Scope = Scope {getList::[(String, OurType)]}
 
 data FuncSign = FuncSign {getId::String, getType::(Maybe OurType), getParamList::[(String,OurType)]}
 
-data SymTable = SymTable {getScopes::[Scope], getFuncS::[FuncSign]}
+data SymTable = SymTable {getScopes::[Scope], getFuncSigns::[FuncSign]}
 
 data OurState = OurState {getSymTable::SymTable, getNestedD::Int, getReturnT::(Maybe OurType)}
 
@@ -38,15 +38,38 @@ lookInSymTable s = state (\os -> (msum $ map (lookInList s) (map (getList) (getS
 
 newScope :: OurMonad ()
 newScope = state (\os -> let newScopes = (Scope []):(getScopes.getSymTable $ os)
-                         in ((),OurState (SymTable newScopes (getFuncS $ getSymTable os)) (getNestedD os) (getReturnT os)))
+                         in ((),OurState (SymTable newScopes (getFuncSigns $ getSymTable os)) (getNestedD os) (getReturnT os)))
 
 removeScope :: OurMonad ()
 removeScope = state (\os -> let scopes' = tail.getScopes.getSymTable $ os
-                            in ((), OurState (SymTable scopes' (getFuncS $ getSymTable os)) (getNestedD os) (getReturnT os)))
+                            in ((), OurState (SymTable scopes' (getFuncSigns $ getSymTable os)) (getNestedD os) (getReturnT os)))
 
 addToSymTable :: (String, OurType) -> OurMonad ()
 addToSymTable pair = state (\os -> let scopes' = getScopes.getSymTable $ os
                                        newScope = Scope $ pair:(getList $ head scopes')
                                        newScopeList = newScope:(tail scopes')
-                                   in ((), OurState (SymTable newScopeList (getFuncS $ getSymTable os)) (getNestedD os) (getReturnT os)))
+                                   in ((), OurState (SymTable newScopeList (getFuncSigns $ getSymTable os)) (getNestedD os) (getReturnT os)))
 
+
+addFunctionSign :: String -> [(String, OurType)] -> (Maybe OurType) -> OurMonad () -- No crea el scope
+addFunctionSign s params typ = state (\os -> let newFunc = FuncSign s typ params
+                                                 newSymTable = SymTable (getScopes.getSymTable $ os) (newFunc:(getFuncSigns.getSymTable $ os))
+                                             in ((),OurState newSymTable (getNestedD os) (getReturnT os))) 
+
+lookFunction :: String -> OurMonad Bool
+lookFunction s = state (\os -> let funcsList = map (getId) (getFuncSigns.getSymTable $ os)
+                                   xs = filter (==s) funcsList
+                                   ans = case xs of 
+                                            [] -> False
+                                            _ -> True
+                               in (ans,os))
+
+
+checkFunction :: String -> [OurType] -> OurMonad Bool
+checkFunction s list = state (\os -> let listF = getParamList $ head $ filter ((==s).getId) (getFuncSigns.getSymTable $ os)
+                                         listType = map snd listF
+                                     in (listType==list,os))
+
+
+setReturnT :: Maybe OurType -> OurMonad ()
+setReturnT typeR = state (\os -> ((),OurState (getSymTable os) (getNestedD os) typeR) )
