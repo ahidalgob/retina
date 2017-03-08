@@ -4,6 +4,7 @@ import Control.Monad.Error
 import Control.Monad.State
 import Control.Monad.Writer
 import Control.Monad
+import Data.Monoid
 import Data.Either
 
 data OurError = OurError Int String | OurErrorNoPos String deriving Show
@@ -19,14 +20,28 @@ data SymTable = SymTable {getScopes::[Scope], getFuncSigns::[FuncSign]}
 
 data OurState = OurState {getSymTable::SymTable, getNestedD::Int, getReturnT::(Maybe OurType)}
 
-type OurMonad a = StateT OurState (WriterT String (Either OurError)) a
+emptyState = OurState (SymTable [] []) (0) Nothing
 
-runOurMonad :: OurMonad a -> OurState -> Either OurError ((a, OurState), String)
+data OurLog = OurLog {getScopesLog::String, getWarningsLog::String}
+
+instance Monoid OurLog where
+  mempty = OurLog "" ""
+  mappend (OurLog a b) (OurLog c d) = OurLog (a++c) (b++d)
+
+instance Show OurLog where
+  show (OurLog a "") = "Alcances:\n"++a++"\n"
+  show (OurLog a b) = "Alcances:\n"++a++"\n"++"Advertencias:"++b
+
+scopeToOurLog s = OurLog s ""
+warningToOurLog s = OurLog "" s
+
+
+type OurMonad a = StateT OurState (WriterT OurLog (Either OurError)) a
+
+runOurMonad :: OurMonad a -> OurState -> Either OurError ((a, OurState), OurLog)
 runOurMonad f a = runWriterT (runStateT f a)
 
-emptyState = OurState (SymTable [] []) (-1) Nothing
-
-getLog f a = snd $ getRight $ runOurMonad f a `catchError` (\e -> return $ (((), emptyState), show e ++ "\n"))
+getLog f a = show $ snd $ getRight $ runOurMonad f a --`catchError` (\e -> return $ (((), emptyState), e))
     where
         getRight (Right x) = x
 
@@ -90,5 +105,9 @@ lastScopeToLog :: String -> OurMonad ()
 lastScopeToLog scopeName = do
     nested <- getNestedDegree 
     OurState (SymTable (sc:_) _) _ _ <- get
-    tell $ (replicate (4*nested) ' ')++"Alcance "++scopeName++"\n"
-    tell $ concatMap (\s -> (replicate (4*nested+2) ' ')++s++"\n" ) $ map show $ reverse.getList $ sc
+    tell.scopeToOurLog $ (replicate (4*nested) ' ')++"Alcance "++scopeName++"\n"
+    tell.scopeToOurLog $ concatMap (\s -> (replicate (4*nested+2) ' ')++s++"\n" ) $ map show $ reverse.getList $ sc
+
+warningToLog :: String -> OurMonad ()
+warningToLog warning = do
+    tell.warningToOurLog $ warning++"\n"
