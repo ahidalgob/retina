@@ -14,6 +14,7 @@ typeNConvert NumberN = Number
 
 checkConstrN :: ConstrN -> OurMonad ()
 checkConstrN (PN ldfN instrListN) = do
+    warningToLog "Advertencia de prueba"
     checkConstrN ldfN
     checkInstrListN instrListN
     return ()
