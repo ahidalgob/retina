@@ -1,10 +1,11 @@
-import Control.Monad.Except
+import Control.Monad.Error
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Writer
 import Data.Either
 
 data OurError = Errr
+instance Error OurError
 
 data OurType = Number | Boolean deriving Eq
 
