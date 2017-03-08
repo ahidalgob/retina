@@ -7,6 +7,15 @@ begin
     end;
 end;
 
+func fun2(number x, number y) -> number
+begin
+    if (x>2) then 
+        return 3;
+    else 
+        return x+2;
+    end;
+end;
+
 program 
     with
         number n;

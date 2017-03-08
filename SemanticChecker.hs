@@ -15,8 +15,8 @@ typeNConvert BooleanN = Boolean
 typeNConvert NumberN = Number
 
 checkConstrN :: ConstrN -> OurMonad ()
+
 checkConstrN (PN ldfn lin) = do
-    tell "hola\n"
     checkConstrN ldfn
     --checkInstrListN lin
 
@@ -24,23 +24,22 @@ checkConstrN (LDFN []) = do
     return ()
 
 checkConstrN (LDFN (funcDefN:rest)) = do
-    case funcDefN of
-        DFN s paramListN _ _ -> do
-            addFunctionSign s ((map (\(x,y) -> (y, typeNConvert x))).listLPN $ paramListN) Nothing
-            
-        RDFN s paramListN typeN _ _ -> do
-            addFunctionSign s ((map (\(x,y) -> (y, typeNConvert x))).listLPN $ paramListN) (Just $ typeNConvert typeN)
-            setReturnT $ Just $ typeNConvert typeN
+    let (funId, paramList, instrListN, lineNum, maybeRet) = case funcDefN of
+            DFN s p i (ln,_) -> (s,(map (\(x,y) -> (y, typeNConvert x))).listLPN $ p,i,ln, Nothing)
+            RDFN s p ret i (ln,c) -> (s,(map (\(x,y) -> (y, typeNConvert x))).listLPN $ p,i,ln, Just $ typeNConvert ret)
+    
+    repeated <- lookFunction funId
 
-    let (funId, paramListN, instrListN, lineNum) = case funcDefN of
-            DFN s p i (ln,_) -> (s,(map (\(x,y) -> (y, typeNConvert x))).listLPN $ p,i,ln)
-            RDFN s p _ i (ln,c) -> (s,(map (\(x,y) -> (y, typeNConvert x))).listLPN $ p,i,ln)
+    when (repeated) $ throwError $ Errr $ "Funcion "++funId++" redefinida en linea "++show lineNum++"."
 
+    addFunctionSign funId paramList maybeRet
+    setReturnT maybeRet
     -- checkInstrListN instrListN
     newScope
-    mapM_ (adder funId lineNum) paramListN
+    mapM_ (adder funId lineNum) paramList
     lastScopeToLog $ '_':funId
     
+    removeScope
     setReturnT Nothing
     checkConstrN $ LDFN rest
 

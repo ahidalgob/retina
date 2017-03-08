@@ -20,6 +20,6 @@ main = do
                     else do
                         --mapM_ printToken $ reverse $ tokenList ls
                         --printConstrN 0 . (P.parse) . reverse . tokenList $ ls
-                        putStrLn $ getLog (checkConstrN $ (P.parse) . reverse . tokenList $ ls) (OurState (SymTable [] []) 0 Nothing)
+                        putStrLn $ getLog (checkConstrN $ (P.parse) . reverse . tokenList $ ls) emptyState
                         
         Left e -> putStrLn e

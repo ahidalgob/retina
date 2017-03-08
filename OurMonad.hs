@@ -9,7 +9,7 @@ import Data.Either
 data OurError = Errr String deriving Show
 instance Error OurError
 
-data OurType = Number | Boolean deriving Eq
+data OurType = Number | Boolean deriving (Eq, Show)
 
 data Scope = Scope {getList::[(String, OurType)]}
 
@@ -24,7 +24,7 @@ type OurMonad a = StateT OurState (WriterT String (Either OurError)) a
 runOurMonad :: OurMonad a -> OurState -> Either OurError ((a, OurState), String)
 runOurMonad f a = runWriterT (runStateT f a)
 
-emptyState = OurState (SymTable [] []) 0 Nothing
+emptyState = OurState (SymTable [] []) (-1) Nothing
 
 getLog f a = snd $ getRight $ runOurMonad f a `catchError` (\e -> return $ (((), emptyState), show e ++ "\n"))
     where
@@ -89,4 +89,6 @@ setReturnT typeR = state (\os -> ((),OurState (getSymTable os) (getNestedD os) t
 lastScopeToLog :: String -> OurMonad ()
 lastScopeToLog scopeName = do
     nested <- getNestedDegree 
-    tell $ (replicate nested ' ')++"Alcance "++scopeName++"\n"
+    OurState (SymTable (sc:_) _) _ _ <- get
+    tell $ (replicate (4*nested) ' ')++"Alcance "++scopeName++"\n"
+    tell $ concatMap (\s -> (replicate (4*nested+2) ' ')++s++"\n" ) $ map show $ getList sc
