@@ -60,14 +60,17 @@ checkConstrN (LDN ((tN,varNList):rest)) = do
     checkConstrN $ LDN rest
     where
         adder t varN = do 
-            let s = case varN of
-                    (VarN st) -> st
-                    (VarValN st _) -> st
+            let (s,me) = case varN of
+                    (VarN st) -> (st, Nothing)
+                    (VarValN st e) -> (st, Just e)
             x <- lookInLastScope s
             case x of
                     Nothing -> addToSymTable (s, t)
                     (Just _) -> throwError $ OurErrorNoPos ("Variable "++s++" definida dos veces en bloque with-do.")
- 
+            case me of
+                    (Just e) -> do
+                        te <- checkExpN e
+                        when (te /= t) $ throwError $ OurErrorNoPos ("Tipo de la variable "++s++" y tipo de su valor no coinciden en su declaracion.")
 
 
 checkInstrListN :: InstrListN -> OurMonad Bool
@@ -80,3 +83,7 @@ checkInstrListN (LIN instrList) = do
 checkInstrN :: InstrN -> OurMonad Bool
 checkInstrN _ = do
     return True
+
+
+checkExpN _ = do
+    return Boolean
