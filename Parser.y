@@ -19,46 +19,46 @@ import AST
     to              { ToTK _ }
     by              { ByTK _ }
     begin           { BeginTK _ }
-    func            { FuncTK _ }
-    return          { ReturnTK _ }
+    func            { FuncTK $$ } --
+    return          { ReturnTK $$ } --
     repeat          { RepeatTK _ }
     program         { ProgramTK _ }
-    with            { WithTK _ }
+    with            { WithTK $$ } --
     do              { DoTK _ }
     end             { EndTK _ }
     times           { TimesTK _ }
-    not             { NotTK _ }
-    and             { AndTK _ }
-    or              { OrTK _ }
+    not             { NotTK $$ } --
+    and             { AndTK $$ } --
+    or              { OrTK $$ } --
     read            { ReadTK _ }
     write           { WriteTK _ }
     writeln         { WritelnTK _ }
-    if              { IfTK _ }
+    if              { IfTK $$ } --
     then            { ThenTK _ }
     else            { ElseTK _ }
     number          { NumberTK _ }
     boolean         { BooleanTK _ }
     true            { TrueTK _ }
     false           { FalseTK _ }
-    div             { DivTK _ }
-    mod             { ModTK _ }
-    ','             { CommaTK _ }
+    div             { DivTK $$ } --
+    mod             { ModTK $$ } --
+    ','             { CommaTK _ } 
     n               { NumLiteralTK _ $$ }
     string          { StringTK _ $$ }
     id              { IdTK _ $$ }
     fid             { FuncIdTK _ $$ }
-    '+'             { PlusTK _ }
-    '=='            { EqualTK _ }
-    '*'             { ProductTK _ }
-    '-'             { MinusTK _ }
-    '%'             { RestTK _ }
-    '/'             { DivExacTK _ }
-    '/='            { DifTK _ }
-    '>='            { GreaterEqualTK _ }
-    '<='            { LessEqualTK _ }
-    '>'             { GreaterTK _ }
-    '<'             { LessTK _ }
-    '='             { AssignTK _ }
+    '+'             { PlusTK $$ } --
+    '=='            { EqualTK $$ } --
+    '*'             { ProductTK $$ } --
+    '-'             { MinusTK $$ } --
+    '%'             { RestTK $$ } --
+    '/'             { DivExacTK $$ } --
+    '/='            { DifTK $$ } --
+    '>='            { GreaterEqualTK $$ } --
+    '<='            { LessEqualTK $$ }
+    '>'             { GreaterTK $$ }
+    '<'             { LessTK $$ }
+    '='             { AssignTK $$ } --
     '('             { ParenOpenTK _ }
     ')'             { ParenCloseTK _ }
     ';'             { SemicolonTK _ }
@@ -81,8 +81,8 @@ LDF : DF LDF    { LDFN $ $1 : listLDFN $2 }
     | {-empty-} { LDFN [] }
 
 -- Definicion de funcion
-DF  : func fid '(' LP ')' begin LI end ';'         { DFN $2 $4 $7 }
-    | func fid '(' LP ')' '->' T begin LI end ';'  { RDFN $2 $4 $7 $9 }
+DF  : func fid '(' LP ')' begin LI end ';'         { DFN $2 $4 $7 $1 }
+    | func fid '(' LP ')' '->' T begin LI end ';'  { RDFN $2 $4 $7 $9 $1 }
 
 -- Lista de parametros
 LP : {-empty-}      { LPN [] }
@@ -102,45 +102,44 @@ E   : id { IdN $1 }
     | true { TrueN }
     | false { FalseN }
     | '(' E ')' { ParN $2 }
-    | E '<' E { ComparN $1 "<" $3 }
-    | E '>' E { ComparN $1 ">" $3 }
-    | E '<=' E { ComparN $1 "<=" $3 }
-    | E '>=' E { ComparN $1 ">=" $3 }
-    | E '==' E { ComparN $1 "==" $3 }
-    | E '/=' E { ComparN $1 "/=" $3 }
-    | not E { NotN $2 }
-    | E and E { LogicN $1 "and" $3 }
-    | E or E { LogicN $1 "or" $3 }
-    | fid '(' LV ')' { FuncN $1 $3 }
+    | E '<' E { ComparN $1 "<" $3 $2 }
+    | E '>' E { ComparN $1 ">" $3 $2 }
+    | E '<=' E { ComparN $1 "<=" $3 $2 }
+    | E '>=' E { ComparN $1 ">=" $3 $2 }
+    | E '==' E { ComparN $1 "==" $3 $2 }
+    | E '/=' E { ComparN $1 "/=" $3 $2 }
+    | not E { NotN $2 $1 }
+    | E and E { LogicN $1 "and" $3 $2 }
+    | E or E { LogicN $1 "or" $3 $2 }
+    | fid '(' LE ')' { FuncN $1 $3 }
     | '-' E         { MinusN $2 }
-    | E '+' E       { AritN $1 "+" $3 }
-    | E '-' E       { AritN $1 "-" $3 }
-    | E '*' E       { AritN $1 "*" $3 }
-    | E '/' E       { AritN $1 "/" $3 }
-    | E '%' E       { AritN $1 "%" $3 }
-    | E mod E       { AritN $1 "mod" $3 }
-    | E div E       { AritN $1 "div" $3 }
+    | E '+' E       { AritN $1 "+" $3 $2 }
+    | E '-' E       { AritN $1 "-" $3 $2 }
+    | E '*' E       { AritN $1 "*" $3 $2 }
+    | E '/' E       { AritN $1 "/" $3 $2 }
+    | E '%' E       { AritN $1 "%" $3 $2 }
+    | E mod E       { AritN $1 "mod" $3 $2 }
+    | E div E       { AritN $1 "div" $3 $2 }
     | n { NumberLiteralN $1 }
 
--- Lista de valores (argumentos de una funcion)
-LV  : LVNV       { LVN $ listLVNVN $1 }
-    | {-empty-}  { LVN [] }
+-- Lista de expresiones (argumentos de una funcion)
+LE  : LENV      { LEN $ listLENVN $1 }
+    | {-empty-} { LEN [] }
 
--- Lista de valones no vacia (para manejar las comas)
-LVNV    : E             { LVNVN [$1] }
-        | E ',' LVNV    { LVNVN $ $1 : listLVNVN $3}
-
+-- Lista de expresiones no vacia (para manejar las comas)
+LENV    : E             { LENVN [$1] }
+        | E ',' LENV    { LENVN $ $1 : listLENVN $3}
 
 -- Lista de declaracion de variables ([(Tipo , lista de variables)])
-LD  : T DST ';' LD  { LDN $ ($1, listDSTN $2) : listLDN $4}
+LD  : T DST ';' LD  { LDN $ ($1, listLVN $2) : listLDN $4}
     | ';' LD        { $2 }
     | {-empty-}     { LDN [] }
 
 -- Lista de variables (posiblemente con un valor asignados)
-DST : id '=' E          {DSTN [DeclVal $1 $3]}
-    | id                {DSTN [Decl $1]}
-    | id '=' E ',' DST  {DSTN $ DeclVal $1 $3 : listDSTN $5}
-    | id ',' DST        {DSTN $ Decl $1 : listDSTN $3}
+DST : id '=' E          {LVarN [VarValN $1 $3]}
+    | id                {LVarN [VarN $1]}
+    | id '=' E ',' DST  {LVarN $ VarValN $1 $3 : listLVN $5}
+    | id ',' DST        {LVarN $ VarN $1 : listLVN $3}
 
 -- Lista de instrucciones
 LI  : {-empty-}         { LIN [] }
@@ -148,20 +147,20 @@ LI  : {-empty-}         { LIN [] }
     | ';' LI            { $2 }
 
 -- Instruccion
-I   : with LD do LI end ';'                 { WithDoN $2 $4 }
+I   : with LD do LI end ';'                 { WithDoN $2 $4 $1 }
     | repeat E times LI end ';'             { RepeatN $2 $4 }
     | id '=' E ';'                          { AssignN $1 $3 }
     | for id from E to E do LI end ';'      { ForN $2 $4 $6 $8 }
     | for id from E to E by E do LI end ';' { ForByN $2 $4 $6 $8 $10 }
-    | if E then LI end ';'                  { IfThenN $2 $4 }
-    | if E then LI else LI end ';'          { IfThenElseN $2 $4 $6 }
+    | if E then LI end ';'                  { IfThenN $2 $4 $1 }
+    | if E then LI else LI end ';'          { IfThenElseN $2 $4 $6 $1 }
     | while E do LI end ';'                 { WhileN $2 $4}
     | write string LPW                      { WriteN $ PWSN $2 : listLPWN $3 }
     | write E LPW                           { WriteN $ PWEN $2 : listLPWN $3 }
     | writeln string LPW                    { WritelnN $ PWSN $2 : listLPWN $3 }
     | writeln E LPW                         { WritelnN $ PWEN $2 : listLPWN $3 }
     | read id ';'                           { ReadN $2 }
-    | return E ';'                          { ReturnN $2 }
+    | return E ';'                          { ReturnN $2 $1 }
     | E ';'                                 { ExprN $1 }
     
 -- Lista de Imprimibles (expresiones o strings)
@@ -178,5 +177,5 @@ happyError tks = error ("Error en el parser en " ++ lcn ++ "\n" ++ "happy is sad
                     [] -> "el final del archivo"
                     tk:_ -> "linea " ++ show l ++ ", columna " ++ show c ++ "\n" ++ show tk
                         where
-                            AlexPn _ l c = tokenPosn tk
+                            (l, c) = tokenPos tk
 }

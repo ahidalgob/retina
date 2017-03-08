@@ -96,57 +96,57 @@ tokens :-
 
 -- The token type:
 data Token =
-    WhileTK { tokenPosn :: AlexPosn }                               |
-    ForTK { tokenPosn :: AlexPosn }                                 |
-    FromTK { tokenPosn :: AlexPosn }                                |
-    ToTK { tokenPosn :: AlexPosn }                                  |
-    ByTK { tokenPosn :: AlexPosn }                                  |
-    BeginTK { tokenPosn :: AlexPosn }                               |
-    FuncTK { tokenPosn :: AlexPosn }                                |
-    ReturnTK {tokenPosn :: AlexPosn}                                |
-    RepeatTK { tokenPosn :: AlexPosn }                              |
-    ProgramTK { tokenPosn :: AlexPosn }                             |
-    WithTK { tokenPosn :: AlexPosn }                                |
-    DoTK { tokenPosn :: AlexPosn }                                  |
-    EndTK { tokenPosn :: AlexPosn }                                 |
-    TimesTK { tokenPosn :: AlexPosn }                               |
-    NotTK { tokenPosn :: AlexPosn }                                 |
-    AndTK { tokenPosn :: AlexPosn }                                 |
-    OrTK { tokenPosn :: AlexPosn }                                  |
-    ReadTK { tokenPosn :: AlexPosn }                                |
-    WriteTK { tokenPosn :: AlexPosn }                               |
-    WritelnTK { tokenPosn :: AlexPosn }                             |
-    IfTK { tokenPosn :: AlexPosn }                                  |
-    ThenTK { tokenPosn :: AlexPosn }                                |
-    ElseTK { tokenPosn :: AlexPosn }                                |
-    NumberTK { tokenPosn :: AlexPosn }                              |
-    BooleanTK { tokenPosn :: AlexPosn }                             |
-    TrueTK { tokenPosn :: AlexPosn }                                |
-    FalseTK { tokenPosn :: AlexPosn }                               |
-    DivTK { tokenPosn :: AlexPosn }                                 |
-    ModTK { tokenPosn :: AlexPosn }                                 |
-    CommaTK { tokenPosn :: AlexPosn }                               |
-    PlusTK { tokenPosn :: AlexPosn }                                |
-    EqualTK { tokenPosn :: AlexPosn }                               |
-    ProductTK { tokenPosn :: AlexPosn }                             |
-    MinusTK { tokenPosn :: AlexPosn }                               |
-    RestTK { tokenPosn :: AlexPosn }                                |
-    DivExacTK { tokenPosn :: AlexPosn }                             |
-    DifTK  { tokenPosn :: AlexPosn }                                |
-    GreaterEqualTK { tokenPosn :: AlexPosn }                        |
-    LessEqualTK { tokenPosn :: AlexPosn }                           |
-    GreaterTK { tokenPosn :: AlexPosn }                             |
-    LessTK { tokenPosn :: AlexPosn }                                |
-    AssignTK { tokenPosn :: AlexPosn }                              |
-    ParenOpenTK { tokenPosn :: AlexPosn }                           |
-    ParenCloseTK { tokenPosn :: AlexPosn }                          |
-    SemicolonTK { tokenPosn :: AlexPosn }                             |
-    TypeTK { tokenPosn :: AlexPosn }                                |
-    NumLiteralTK { tokenPosn :: AlexPosn, tokenString :: String}    |
-    StringTK { tokenPosn :: AlexPosn, tokenString :: String}        |
-    IdTK { tokenPosn :: AlexPosn, tokenString :: String}            |
-    FuncIdTK { tokenPosn :: AlexPosn, tokenString :: String}        |
-    InvalidTK { tokenPosn :: AlexPosn, tokenString :: String}
+    WhileTK { tokenPos :: (Int, Int) }                               |
+    ForTK { tokenPos :: (Int, Int) }                                 |
+    FromTK { tokenPos :: (Int, Int) }                                |
+    ToTK { tokenPos :: (Int, Int) }                                  |
+    ByTK { tokenPos :: (Int, Int) }                                  |
+    BeginTK { tokenPos :: (Int, Int) }                               |
+    FuncTK { tokenPos :: (Int, Int) }                                |
+    ReturnTK {tokenPos :: (Int, Int)}                                |
+    RepeatTK { tokenPos :: (Int, Int) }                              |
+    ProgramTK { tokenPos :: (Int, Int) }                             |
+    WithTK { tokenPos :: (Int, Int) }                                |
+    DoTK { tokenPos :: (Int, Int) }                                  |
+    EndTK { tokenPos :: (Int, Int) }                                 |
+    TimesTK { tokenPos :: (Int, Int) }                               |
+    NotTK { tokenPos :: (Int, Int) }                                 |
+    AndTK { tokenPos :: (Int, Int) }                                 |
+    OrTK { tokenPos :: (Int, Int) }                                  |
+    ReadTK { tokenPos :: (Int, Int) }                                |
+    WriteTK { tokenPos :: (Int, Int) }                               |
+    WritelnTK { tokenPos :: (Int, Int) }                             |
+    IfTK { tokenPos :: (Int, Int) }                                  |
+    ThenTK { tokenPos :: (Int, Int) }                                |
+    ElseTK { tokenPos :: (Int, Int) }                                |
+    NumberTK { tokenPos :: (Int, Int) }                              |
+    BooleanTK { tokenPos :: (Int, Int) }                             |
+    TrueTK { tokenPos :: (Int, Int) }                                |
+    FalseTK { tokenPos :: (Int, Int) }                               |
+    DivTK { tokenPos :: (Int, Int) }                                 |
+    ModTK { tokenPos :: (Int, Int) }                                 |
+    CommaTK { tokenPos :: (Int, Int) }                               |
+    PlusTK { tokenPos :: (Int, Int) }                                |
+    EqualTK { tokenPos :: (Int, Int) }                               |
+    ProductTK { tokenPos :: (Int, Int) }                             |
+    MinusTK { tokenPos :: (Int, Int) }                               |
+    RestTK { tokenPos :: (Int, Int) }                                |
+    DivExacTK { tokenPos :: (Int, Int) }                             |
+    DifTK  { tokenPos :: (Int, Int) }                                |
+    GreaterEqualTK { tokenPos :: (Int, Int) }                        |
+    LessEqualTK { tokenPos :: (Int, Int) }                           |
+    GreaterTK { tokenPos :: (Int, Int) }                             |
+    LessTK { tokenPos :: (Int, Int) }                                |
+    AssignTK { tokenPos :: (Int, Int) }                              |
+    ParenOpenTK { tokenPos :: (Int, Int) }                           |
+    ParenCloseTK { tokenPos :: (Int, Int) }                          |
+    SemicolonTK { tokenPos :: (Int, Int) }                           |
+    TypeTK { tokenPos :: (Int, Int) }                                |
+    NumLiteralTK { tokenPos :: (Int, Int), tokenString :: String}    |
+    StringTK { tokenPos :: (Int, Int), tokenString :: String}        |
+    IdTK { tokenPos :: (Int, Int), tokenString :: String}            |
+    FuncIdTK { tokenPos :: (Int, Int), tokenString :: String}        |
+    InvalidTK { tokenPos :: (Int, Int), tokenString :: String}
     deriving (Eq)
 
 instance Show Token where
@@ -205,7 +205,7 @@ instance Show Token where
 
 printToken tk = putStrLn $ "linea " ++ (show ln) ++", columna " ++ (show cn) ++ ": " ++ show tk
     where
-        AlexPn _ ln cn = tokenPosn tk
+        (ln, cn) = tokenPos tk
 
 
 alexEOF :: Alex ()
@@ -229,31 +229,33 @@ pushValid tkn ts =  if invalidTokens ts
                         then ts
                         else ts{tokenList = tkn : (tokenList ts)}
 
-pushToken :: (AlexPosn -> Token) -> AlexAction ()
-pushToken tokenizer =
-    \(posn,prevChar,pending,s) len -> modifyUserState (pushValid (tokenizer posn)) >> alexMonadScan
+alexPosn2Pair (AlexPn _ c l) = (c, l)
 
-pushTokenWithString :: (AlexPosn -> String -> Token) -> AlexAction ()
+pushToken :: ((Int, Int) -> Token) -> AlexAction ()
+pushToken tokenizer =
+    \(posn,prevChar,pending,s) len -> modifyUserState (pushValid (tokenizer $ alexPosn2Pair posn)) >> alexMonadScan
+
+pushTokenWithString :: ((Int, Int) -> String -> Token) -> AlexAction ()
 pushTokenWithString tokenizer =
-    \(posn,prevChar,pending,s) len -> modifyUserState (pushValid $ tokenizer posn $ take len s) >> alexMonadScan
+    \(posn,prevChar,pending,s) len -> modifyUserState (pushValid $ tokenizer (alexPosn2Pair posn) $ take len s) >> alexMonadScan
     
 pushFuncIdTK :: AlexAction ()
 pushFuncIdTK = 
-     \(posn@(AlexPn x ln cn),prevChar,pending,s) len -> do  modifyUserState (pushValid $ FuncIdTK posn $ take (len-1) s)
-                                                            modifyUserState (pushValid $ ParenOpenTK (AlexPn x ln (cn+len-1)))
+     \(posn@(AlexPn x ln cn),prevChar,pending,s) len -> do  modifyUserState (pushValid $ FuncIdTK (alexPosn2Pair posn) $ take (len-1) s)
+                                                            modifyUserState (pushValid $ ParenOpenTK $ alexPosn2Pair (AlexPn x ln (cn+len-1)))
                                                             alexMonadScan
 
-pushTokenWithOpenPar :: (AlexPosn -> Token) -> AlexAction ()
+pushTokenWithOpenPar :: ((Int, Int) -> Token) -> AlexAction ()
 pushTokenWithOpenPar tokenizer =
-    \(posn@(AlexPn x ln cn),prevChar,pending,s) len -> do   modifyUserState (pushValid $ tokenizer posn)
-                                                            modifyUserState (pushValid $ ParenOpenTK (AlexPn x ln (cn+len-1)))
+    \(posn@(AlexPn x ln cn),prevChar,pending,s) len -> do   modifyUserState (pushValid $ tokenizer $ alexPosn2Pair posn)
+                                                            modifyUserState (pushValid $ ParenOpenTK $ alexPosn2Pair (AlexPn x ln (cn+len-1)))
                                                             alexMonadScan
 
-pushInvalid :: (AlexPosn -> String -> Token) -> AlexAction ()
+pushInvalid :: ((Int, Int) -> String -> Token) -> AlexAction ()
 pushInvalid tokenizer =
-    \(posn,prevChar,pending,s) len -> modifyUserState checkInvalid >> modifyUserState (push posn $ take len s) >> alexMonadScan
+    \(posn,prevChar,pending,s) len -> modifyUserState checkInvalid >> modifyUserState (push (alexPosn2Pair posn) $ take len s) >> alexMonadScan
         where
-            push :: AlexPosn -> String -> AlexUserState -> AlexUserState
+            push :: (Int, Int) -> String -> AlexUserState -> AlexUserState
             push posn ss ts = ts{tokenList = (tokenizer posn ss):(tokenList ts)}
             checkInvalid :: AlexUserState -> AlexUserState
             checkInvalid ts =   if not $ invalidTokens ts 

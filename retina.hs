@@ -17,5 +17,5 @@ main = do
                         mapM_ printToken $ reverse $ tokenList ls
                     else do
                         --mapM_ printToken $ reverse $ tokenList ls
-                        printExp 0 . (P.parse) . reverse . tokenList $ ls
+                        printConstr 0 . (P.parse) . reverse . tokenList $ ls
         Left e -> putStrLn e
