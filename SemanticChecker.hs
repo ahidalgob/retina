@@ -84,6 +84,14 @@ checkInstrN :: InstrN -> OurMonad Bool
 checkInstrN _ = do
     return True
 
+checkExpN :: ExpN -> OurMonad OurType
 
-checkExpN _ = do
+checkExpN (TrueN) = do
     return Boolean
+
+checkExpN (FalseN) = do
+    return Boolean
+
+checkExpN (ParN exp) = do
+    ans <- checkExpN exp
+    return ans

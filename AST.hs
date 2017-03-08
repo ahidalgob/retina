@@ -7,15 +7,15 @@ module AST where
 import Control.Monad
 
 data ExpN =
-    IdN String                                      |
+    IdN String (Int, Int)                           |
     TrueN                                           |
     FalseN                                          |
     ParN ExpN                                       |
     ComparN ExpN String ExpN (Int,Int)              |
     NotN ExpN (Int,Int)                             |
     LogicN ExpN String ExpN (Int,Int)               |
-    FuncN String ExpListN                           |
-    MinusN ExpN                                     |
+    FuncN String ExpListN (Int,Int)                 |
+    MinusN ExpN (Int,Int)                           |
     AritN ExpN String ExpN (Int,Int)                |
     NumberLiteralN String
     deriving Show
@@ -71,13 +71,13 @@ data WordN =
 
 data InstrN =
     WithDoN ConstrN InstrListN (Int,Int)                        |
-    RepeatN ExpN InstrListN                                     |
-    AssignN String ExpN                                         |
-    ForN String ExpN ExpN InstrListN                            |
-    ForByN String ExpN ExpN ExpN InstrListN                     |
+    RepeatN ExpN InstrListN (Int,Int)                                   |
+    AssignN String ExpN (Int,Int)                                      |
+    ForN String ExpN ExpN InstrListN (Int,Int)                            |
+    ForByN String ExpN ExpN ExpN InstrListN  (Int,Int)                    |
     IfThenN ExpN InstrListN (Int,Int)                           |
     IfThenElseN ExpN InstrListN InstrListN (Int,Int)            |
-    WhileN ExpN InstrListN                                      |
+    WhileN ExpN InstrListN (Int,Int)                                       |
     WriteN {listWriteN :: [WordN]}                              |
     WritelnN {listWritelnN :: [WordN]}                          |
     ReadN String                                                |
@@ -94,7 +94,7 @@ putStrLnWithIdent n s = (replicateM_ n $ putStr ident) >> putStrLn s
 printId n s = putStrLnWithIdent n $ "Identificador: " ++ s
 
 printExpN :: Int -> ExpN -> IO()
-printExpN n (IdN s) = do
+printExpN n (IdN s _) = do
     printId n s
 
 printExpN n (TrueN) = do
@@ -127,12 +127,12 @@ printExpN n (LogicN exp s exp1 _) = do
     putStrLnWithIdent (n+1) "Lado derecho:"
     printExpN (n+2) exp1
     
-printExpN n (FuncN s exp) = do 
+printExpN n (FuncN s exp _) = do 
     putStrLnWithIdent n "Llamada de funcion:"
     printId (n+1) s
     printExpListN (n+1) exp
 
-printExpN n (MinusN exp) = do
+printExpN n (MinusN exp _) = do
     putStrLnWithIdent n "Menos unario:"
     printExpN (n+1) exp
     
@@ -231,19 +231,19 @@ printInstrN n (WithDoN exp exp1 _) = do
     printConstrN (n+1) exp
     printInstrListN (n+1) exp1
     
-printInstrN n (RepeatN exp exp1) = do
+printInstrN n (RepeatN exp exp1 _) = do
     putStrLnWithIdent n "Instruccion repeat:"
     putStrLnWithIdent (n+1) "Cantidad de repeticiones:"
     printExpN (n+2) exp
     printInstrListN (n+1) exp1
     
-printInstrN n (AssignN s exp1) = do
+printInstrN n (AssignN s exp1 _) = do
     putStrLnWithIdent n "Instruccion de asignacion:"
     printId (n+1) s
     putStrLnWithIdent (n+1) "Valor:"
     printExpN (n+2) exp1
     
-printInstrN n (ForN s exp exp1 exp2) = do
+printInstrN n (ForN s exp exp1 exp2 _) = do
     putStrLnWithIdent n "Instruccion for:"
     putStrLnWithIdent (n+1) "Variable iteradora:"
     printId (n+2) s
@@ -253,7 +253,7 @@ printInstrN n (ForN s exp exp1 exp2) = do
     printExpN (n+2) exp1
     printInstrListN (n+1) exp2
 
-printInstrN n (ForByN s exp exp1 exp2 exp3) = do
+printInstrN n (ForByN s exp exp1 exp2 exp3 _) = do
     putStrLnWithIdent n "Instruccion for-by:"
     putStrLnWithIdent (n+1) "Variable iteradora:"
     printId (n+2) s
@@ -280,7 +280,7 @@ printInstrN n (IfThenElseN exp exp1 exp2 _) = do
     putStrLnWithIdent (n+1) "Bloque 2 (else):"
     printInstrListN (n+2) exp2
     
-printInstrN n (WhileN exp exp1) = do
+printInstrN n (WhileN exp exp1 _) = do
     putStrLnWithIdent n "Instruccion while-do:"
     putStrLnWithIdent (n+1) "Condicion:"
     printExpN (n+2) exp

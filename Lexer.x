@@ -207,6 +207,11 @@ printToken tk = putStrLn $ "linea " ++ (show ln) ++", columna " ++ (show cn) ++ 
     where
         (ln, cn) = tokenPos tk
 
+getTokenString (IdTK p s) = s
+getTokenString (FuncIdTK p s) = s
+
+getTokenPair (IdTK p s) = p
+getTokenPair (FuncIdTK p s) = p
 
 alexEOF :: Alex ()
 alexEOF = return ()
