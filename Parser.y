@@ -13,15 +13,15 @@ import AST
 %tokentype { Token }
 
 %token
-    while           { WhileTK _ }
-    for             { ForTK _ }
+    while           { WhileTK $$ }
+    for             { ForTK $$ }
     from            { FromTK _ }
     to              { ToTK _ }
     by              { ByTK _ }
     begin           { BeginTK _ }
     func            { FuncTK $$ } --
     return          { ReturnTK $$ } --
-    repeat          { RepeatTK _ }
+    repeat          { RepeatTK $$ }
     program         { ProgramTK _ }
     with            { WithTK $$ } --
     do              { DoTK _ }
@@ -45,8 +45,8 @@ import AST
     ','             { CommaTK _ } 
     n               { NumLiteralTK _ $$ }
     string          { StringTK _ $$ }
-    id              { IdTK _ $$ }
-    fid             { FuncIdTK _ $$ }
+    id              { IdTK _ _ } ----
+    fid             { FuncIdTK _ _ } ----
     '+'             { PlusTK $$ } --
     '=='            { EqualTK $$ } --
     '*'             { ProductTK $$ } --
@@ -81,16 +81,16 @@ LDF : DF LDF    { LDFN $ $1 : listLDFN $2 }
     | {-empty-} { LDFN [] }
 
 -- Definicion de funcion
-DF  : func fid '(' LP ')' begin LI end ';'         { DFN $2 $4 $7 $1 }
-    | func fid '(' LP ')' '->' T begin LI end ';'  { RDFN $2 $4 $7 $9 $1 }
+DF  : func fid '(' LP ')' begin LI end ';'         { DFN (tokenString $2) $4 $7 $1 }
+    | func fid '(' LP ')' '->' T begin LI end ';'  { RDFN (tokenString $2) $4 $7 $9 $1 }
 
 -- Lista de parametros
 LP : {-empty-}      { LPN [] }
    | LPNV           { LPN $ listLPNVN $1 }
    
 -- Lista de Parametros no vacia (construccion auxiliar para manejar las comas)
-LPNV : T id             { LPNVN [($1, $2)] }
-     | T id ',' LPNV    { LPNVN $ ($1, $2) : listLPNVN $4 }
+LPNV : T id             { LPNVN [($1, (tokenString $2))] }
+     | T id ',' LPNV    { LPNVN $ ($1, (tokenString $2)) : listLPNVN $4 }
 
 -- Tipo
 T : boolean { BooleanN }
@@ -98,7 +98,7 @@ T : boolean { BooleanN }
   
 -- Expresion (Construcciones que evaluan boolean o number
 --             (o llamados a funciones que pueden evaluar void))
-E   : id { IdN $1 }
+E   : id { IdN (tokenString $1) (tokenPos $1) }
     | true { TrueN }
     | false { FalseN }
     | '(' E ')' { ParN $2 }
@@ -111,8 +111,8 @@ E   : id { IdN $1 }
     | not E { NotN $2 $1 }
     | E and E { LogicN $1 "and" $3 $2 }
     | E or E { LogicN $1 "or" $3 $2 }
-    | fid '(' LE ')' { FuncN $1 $3 }
-    | '-' E         { MinusN $2 }
+    | fid '(' LE ')' { FuncN (tokenString $1) $3 (tokenPos $1) }
+    | '-' E         { MinusN $2 $1 }
     | E '+' E       { AritN $1 "+" $3 $2 }
     | E '-' E       { AritN $1 "-" $3 $2 }
     | E '*' E       { AritN $1 "*" $3 $2 }
@@ -136,10 +136,10 @@ LD  : T DST ';' LD  { LDN $ ($1, listLVN $2) : listLDN $4}
     | {-empty-}     { LDN [] }
 
 -- Lista de variables (posiblemente con un valor asignados)
-DST : id '=' E          {LVarN [VarValN $1 $3]}
-    | id                {LVarN [VarN $1]}
-    | id '=' E ',' DST  {LVarN $ VarValN $1 $3 : listLVN $5}
-    | id ',' DST        {LVarN $ VarN $1 : listLVN $3}
+DST : id '=' E          {LVarN [VarValN (tokenString $1) $3]}
+    | id                {LVarN [VarN (tokenString $1)]}
+    | id '=' E ',' DST  {LVarN $ VarValN (tokenString $1) $3 : listLVN $5}
+    | id ',' DST        {LVarN $ VarN (tokenString $1) : listLVN $3}
 
 -- Lista de instrucciones
 LI  : {-empty-}         { LIN [] }
@@ -148,18 +148,18 @@ LI  : {-empty-}         { LIN [] }
 
 -- Instruccion
 I   : with LD do LI end ';'                 { WithDoN $2 $4 $1 }
-    | repeat E times LI end ';'             { RepeatN $2 $4 }
-    | id '=' E ';'                          { AssignN $1 $3 }
-    | for id from E to E do LI end ';'      { ForN $2 $4 $6 $8 }
-    | for id from E to E by E do LI end ';' { ForByN $2 $4 $6 $8 $10 }
+    | repeat E times LI end ';'             { RepeatN $2 $4 $1 }
+    | id '=' E ';'                          { AssignN (tokenString $1) $3 (tokenPos $1)}
+    | for id from E to E do LI end ';'      { ForN (tokenString $2) $4 $6 $8 $1}
+    | for id from E to E by E do LI end ';' { ForByN (tokenString $2) $4 $6 $8 $10 $1 }
     | if E then LI end ';'                  { IfThenN $2 $4 $1 }
     | if E then LI else LI end ';'          { IfThenElseN $2 $4 $6 $1 }
-    | while E do LI end ';'                 { WhileN $2 $4}
+    | while E do LI end ';'                 { WhileN $2 $4 $1}
     | write string LPW                      { WriteN $ PWSN $2 : listLPWN $3 }
     | write E LPW                           { WriteN $ PWEN $2 : listLPWN $3 }
     | writeln string LPW                    { WritelnN $ PWSN $2 : listLPWN $3 }
     | writeln E LPW                         { WritelnN $ PWEN $2 : listLPWN $3 }
-    | read id ';'                           { ReadN $2 }
+    | read id ';'                           { ReadN (tokenString $2) }
     | return E ';'                          { ReturnN $2 $1 }
     | E ';'                                 { ExprN $1 }
     
