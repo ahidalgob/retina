@@ -1,5 +1,3 @@
-
-
 module SemanticChecker where
 import AST
 import OurMonad
@@ -30,20 +28,36 @@ checkConstrN (LDFN (funcDefN:rest)) = do
     
     repeated <- lookFunction funId
 
-    when (repeated) $ throwError $ Errr $ "Funcion "++funId++" redefinida en linea "++show lineNum++"."
+    when (repeated) $ throwError $ Errr lineNum $ "Funcion "++funId++" redefinida."
 
     addFunctionSign funId paramList maybeRet
     setReturnT maybeRet
-    -- checkInstrListN instrListN
+
+    
     newScope
     mapM_ (adder funId lineNum) paramList
     lastScopeToLog $ '_':funId
     
+    -- checkInstrListN instrListN
+
     removeScope
     setReturnT Nothing
     checkConstrN $ LDFN rest
-
     where adder funId lineNum (s, t) = do   x <- lookInLastScope s
                                             case x of
                                                 Nothing -> addToSymTable (s, t)
-                                                (Just _) -> throwError $ Errr ("Variable "++s++" definida dos veces en funcion "++funId++" en linea "++show lineNum++".")
+                                                (Just _) -> throwError $ Errr lineNum ("Variable "++s++" definida dos veces en parametros de funcion "++funId++".")
+
+
+
+
+-- el encargado de abrir y cerrar el scope (with) debe ser el que haga
+-- newScope y removeScope
+checkConstrN (LDN []) = do
+    return ()
+
+checkConstrN (LDN ((tN,varNList):rest)) = do
+    let t = typeNConvert tN
+    -- agregar variables al scope
+    -- lanzar error con pos cualquiera y en el with catcharlo y lanzarlo bien
+    checkConstrN $ LDN rest

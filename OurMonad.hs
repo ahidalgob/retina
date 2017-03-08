@@ -6,7 +6,7 @@ import Control.Monad.Writer
 import Control.Monad
 import Data.Either
 
-data OurError = Errr String deriving Show
+data OurError = Errr Int String deriving Show
 instance Error OurError
 
 data OurType = Number | Boolean deriving (Eq, Show)
