@@ -6,7 +6,7 @@ import Control.Monad.Writer
 import Control.Monad
 import Data.Either
 
-data OurError = Errr Int String deriving Show
+data OurError = OurError Int String | OurErrorNoPos String deriving Show
 instance Error OurError
 
 data OurType = Number | Boolean deriving (Eq, Show)
@@ -91,4 +91,4 @@ lastScopeToLog scopeName = do
     nested <- getNestedDegree 
     OurState (SymTable (sc:_) _) _ _ <- get
     tell $ (replicate (4*nested) ' ')++"Alcance "++scopeName++"\n"
-    tell $ concatMap (\s -> (replicate (4*nested+2) ' ')++s++"\n" ) $ map show $ getList sc
+    tell $ concatMap (\s -> (replicate (4*nested+2) ' ')++s++"\n" ) $ map show $ reverse.getList $ sc

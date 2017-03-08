@@ -1,11 +1,11 @@
 module SemanticChecker where
 import AST
 import OurMonad
-import Data.Traversable
 import Control.Monad.Error
 import Control.Monad.State
 import Control.Monad.Writer
 import Control.Monad
+import Control.Applicative
 import Data.Either
 
 typeNConvert :: TypeN -> OurType
@@ -13,10 +13,10 @@ typeNConvert BooleanN = Boolean
 typeNConvert NumberN = Number
 
 checkConstrN :: ConstrN -> OurMonad ()
-
-checkConstrN (PN ldfn lin) = do
-    checkConstrN ldfn
-    --checkInstrListN lin
+checkConstrN (PN ldfN instrListN) = do
+    checkConstrN ldfN
+    checkInstrListN instrListN
+    return ()
 
 checkConstrN (LDFN []) = do
     return ()
@@ -28,7 +28,7 @@ checkConstrN (LDFN (funcDefN:rest)) = do
     
     repeated <- lookFunction funId
 
-    when (repeated) $ throwError $ Errr lineNum $ "Funcion "++funId++" redefinida."
+    when (repeated) $ throwError $ OurError lineNum $ "Funcion "++funId++" redefinida."
 
     addFunctionSign funId paramList maybeRet
     setReturnT maybeRet
@@ -37,8 +37,8 @@ checkConstrN (LDFN (funcDefN:rest)) = do
     newScope
     mapM_ (adder funId lineNum) paramList
     lastScopeToLog $ '_':funId
-    
-    -- checkInstrListN instrListN
+
+    checkInstrListN instrListN
 
     removeScope
     setReturnT Nothing
@@ -46,9 +46,7 @@ checkConstrN (LDFN (funcDefN:rest)) = do
     where adder funId lineNum (s, t) = do   x <- lookInLastScope s
                                             case x of
                                                 Nothing -> addToSymTable (s, t)
-                                                (Just _) -> throwError $ Errr lineNum ("Variable "++s++" definida dos veces en parametros de funcion "++funId++".")
-
-
+                                                (Just _) -> throwError $ OurError lineNum ("Variable "++s++" definida dos veces en parametros de funcion "++funId++".")
 
 
 -- el encargado de abrir y cerrar el scope (with) debe ser el que haga
@@ -58,6 +56,27 @@ checkConstrN (LDN []) = do
 
 checkConstrN (LDN ((tN,varNList):rest)) = do
     let t = typeNConvert tN
-    -- agregar variables al scope
-    -- lanzar error con pos cualquiera y en el with catcharlo y lanzarlo bien
+    mapM_ (adder t) varNList -- lanza error sin pos y en el with catcharlo y lanzarlo bien
     checkConstrN $ LDN rest
+    where
+        adder t varN = do 
+            let s = case varN of
+                    (VarN st) -> st
+                    (VarValN st _) -> st
+            x <- lookInLastScope s
+            case x of
+                    Nothing -> addToSymTable (s, t)
+                    (Just _) -> throwError $ OurErrorNoPos ("Variable "++s++" definida dos veces en bloque with-do.")
+ 
+
+
+checkInstrListN :: InstrListN -> OurMonad Bool
+checkInstrListN (LIN instrList) = do
+    --resList <- mapM checkInstrN instrList
+    --let res = all id resList
+    --return res
+    (all id) <$> (mapM checkInstrN instrList)
+
+checkInstrN :: InstrN -> OurMonad Bool
+checkInstrN _ = do
+    return True
