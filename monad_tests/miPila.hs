@@ -1,4 +1,4 @@
-import Control.Monad.Error
+import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Writer
@@ -8,14 +8,13 @@ import Data.Either
 data MyError =  Error1 String | Error2
                 deriving Show
 
-instance Error MyError
 
 
 -- runWriter (runErrorT (runStateT xx1 0))
 -- devuelve un 
 -- (Either MyError ((), Int), String)
-xx1 :: StateT Int (ErrorT MyError (Writer String)) ()
-xx1 = put 5
+--xx1 :: StateT Int (ExceptT MyError (Writer String)) ()
+--xx1 = put 5
 
 
 -- runStateT xx2 0

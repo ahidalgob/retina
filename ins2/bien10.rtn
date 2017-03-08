@@ -1,7 +1,0 @@
-program
-    with
-    
-    do
-        p = not p and not q or r;
-    end;
-end;
