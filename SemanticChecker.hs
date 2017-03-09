@@ -167,3 +167,14 @@ checkExpN (AritN exp s exp1 (lineNum,_)) = do
 checkExpN (NumberLiteralN s) = do
     return Number
 
+checkWordListN :: [WordN] -> OurMonad ()
+
+checkWordListN (wordList) = do
+    mapM_ fun  wordList
+    return ()
+    where fun (PWEN exp) = do
+            ans <- checkExpN exp
+            case ans of 
+                Void -> throwError $ OurErrorNoPos ("La expresion a mostrar en pantalla no evalua a nada.")
+                _ -> return ()    
+          fun _ = return ()
