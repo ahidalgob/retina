@@ -1,8 +1,0 @@
-program
-with
-    number i;
-do
-    i = 27;
-    writeln i + 13;
-end;
-end;

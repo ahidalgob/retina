@@ -1,9 +1,27 @@
 func fun1(number x, number y) -> number
 begin
+    with
+        number n;
+    do
+        write "Hi";
+        for i from 4 to x+3 do
+            return 4;
+        end;
+    end;
     if (x>2) then 
         return 3;
     else 
         return x+2;
+    end;
+    4;
+end;
+
+func fun2(number x, number y)
+begin
+    if (x>2) then 
+        3;
+    else 
+        x+2;
     end;
 end;
 
@@ -12,5 +30,9 @@ program
         number n;
     do
         write "Hi";
+        true;
+        (false);
+        #(n+2*n);
+        fun1(n,n);
     end;
 end;

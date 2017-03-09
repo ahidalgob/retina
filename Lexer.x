@@ -207,7 +207,6 @@ printToken tk = putStrLn $ "linea " ++ (show ln) ++", columna " ++ (show cn) ++ 
     where
         (ln, cn) = tokenPos tk
 
-
 alexEOF :: Alex ()
 alexEOF = return ()
 

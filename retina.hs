@@ -6,6 +6,8 @@
 import Lexer
 import AST
 import qualified Parser as P
+import SemanticChecker
+import OurMonad
 import System.Environment
 
 main = do
@@ -17,5 +19,7 @@ main = do
                         mapM_ printToken $ reverse $ tokenList ls
                     else do
                         --mapM_ printToken $ reverse $ tokenList ls
-                        printConstrN 0 . (P.parse) . reverse . tokenList $ ls
+                        --printConstrN 0 . (P.parse) . reverse . tokenList $ ls
+                        putStrLn $ getLog (checkConstrN $ (P.parse) . reverse . tokenList $ ls) emptyState
+                        
         Left e -> putStrLn e

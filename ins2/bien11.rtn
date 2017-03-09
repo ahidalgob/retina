@@ -1,5 +1,0 @@
-program
-    func(hola);
-    x = (2)mod(3);
-    y = (true)and(not(p));
-end;

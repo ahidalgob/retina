@@ -1,11 +1,17 @@
-retina: Lexer Parser
-	ghc --make retina.hs
+retina: Lexer Parser OurMonad SemanticChecker
+	ghc --make -w retina.hs
 
 Lexer: Lexer.x
 	alex Lexer.x
 
 Parser: Parser.y
 	happy Parser.y
+
+OurMonad: OurMonad.hs
+	ghc --make -w OurMonad.hs
+
+SemanticChecker: SemanticChecker.hs
+	ghc --make -w SemanticChecker.hs
 
 clean:
 	-rm -f *.hi
