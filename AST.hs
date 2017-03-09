@@ -71,13 +71,13 @@ data WordN =
 
 data InstrN =
     WithDoN ConstrN InstrListN (Int,Int)                        |
-    RepeatN ExpN InstrListN (Int,Int)                                   |
-    AssignN String ExpN (Int,Int)                                      |
-    ForN String ExpN ExpN InstrListN (Int,Int)                            |
-    ForByN String ExpN ExpN ExpN InstrListN  (Int,Int)                    |
+    RepeatN ExpN InstrListN (Int,Int)                           |
+    AssignN String ExpN (Int,Int)                               |
+    ForN String ExpN ExpN InstrListN (Int,Int)                  |
+    ForByN String ExpN ExpN ExpN InstrListN  (Int,Int)          |
     IfThenN ExpN InstrListN (Int,Int)                           |
     IfThenElseN ExpN InstrListN InstrListN (Int,Int)            |
-    WhileN ExpN InstrListN (Int,Int)                                       |
+    WhileN ExpN InstrListN (Int,Int)                            |
     WriteN {listWriteN :: [WordN]}                              |
     WritelnN {listWritelnN :: [WordN]}                          |
     ReadN String                                                |

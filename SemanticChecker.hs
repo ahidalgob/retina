@@ -12,21 +12,17 @@ data Returned = Yes | Idk | No
 
 (|+|) :: Returned -> Returned -> Returned
 (|*|) :: Returned -> Returned -> Returned
-
 Yes |+| _ = Yes
 _ |+| Yes = Yes
 Idk |+| _ = Idk
 _ |+| Idk = Idk
 No |+| No = No
 
-
 No |*| _ = No
 _ |*| No = No
 Idk |*| _ = Idk
 _ |*| Idk = Idk
 Yes |*| Yes = Yes
-
-
 
 
 
@@ -95,16 +91,15 @@ checkConstrN (LDN ((tN,varNList):rest)) = do
                         when (te /= t) $ throwError $ OurErrorNoPos ("Tipo de la variable \""++s++"\" y tipo de su valor no coinciden en su declaracion.")
 
 
-checkInstrListN :: InstrListN -> OurMonad Bool
+checkInstrListN :: InstrListN -> OurMonad Returned
 checkInstrListN (LIN instrList) = do
-    --resList <- mapM checkInstrN instrList
-    --let res = all id resList
-    --return res
-    (all id) <$> (mapM checkInstrN instrList)
+    (foldl (|+|) No) <$> (mapM checkInstrN instrList)
 
-checkInstrN :: InstrN -> OurMonad Bool
-checkInstrN _ = do
-    return True
+checkInstrN :: InstrN -> OurMonad Returned
+checkInstrN (WithDoN ldn lin (lineNum,_)) = do
+    newScope
+    checkConstrN ldn `catchError` (\(OurErrorNoPos s) -> throwError $ OurError lineNum s)
+    return Yes
 
 checkExpN :: ExpN -> OurMonad OurType
 
