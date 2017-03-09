@@ -58,7 +58,7 @@ checkConstrN (LDFN (funcDefN:rest)) = do
     lastScopeToLog $ '_':funId
 
     checkInstrListN instrListN
-
+    -- REVISAR SI SE RETORNO, DAR ERROR O ADVERTENCIA RESPECTIVA
     removeScope
     setReturnType Nothing
     checkConstrN $ LDFN rest
@@ -205,7 +205,7 @@ checkExpN (ComparN exp s exp1 (lineNum,_)) = do
     ans1 <- checkExpN exp1
     when (ans1==Void && ans==Void) $ throwError $ OurError lineNum $ "Los parametros de la comparacion "++s++" evaluan a void." 
     when (ans1/=ans) $ throwError $ OurError lineNum $ "Tipos de las expresiones de la comparacion "++s++" no concuerdan ( "++show ans++" "++show ans1++")." 
-    return ans
+    return Boolean
 
 checkExpN (NotN exp (lineNum,_)) = do
     ans <- checkExpN exp

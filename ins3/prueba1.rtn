@@ -4,12 +4,16 @@ begin
         number n;
     do
         write "Hi";
+        for i from 4 to x+3 do
+            return 4;
+        end;
     end;
     if (x>2) then 
         return 3;
     else 
         return x+2;
     end;
+    4;
 end;
 
 func fun2(number x, number y) -> number
