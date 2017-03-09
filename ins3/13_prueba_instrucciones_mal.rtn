@@ -1,0 +1,33 @@
+func myFun(number x, number y) 
+begin
+    with
+        number n;
+    do
+        4;
+    end;
+end;
+
+func myFun3(number x, number y) 
+begin
+    3;
+end;
+
+program
+    with
+        number i,r;
+    do  
+        i=3;
+        for i from i to 3/0 by r+234 do
+            3;
+            #return 23;
+        end;
+        #while myFun3(2,3) do
+          #  32;
+         #   true and false;
+        #end;
+        writeln true,myFun3(2,3),3243>4234+234/3,"hol","agteamo";
+        #read sr;
+        myFun3(23,23);
+
+    end;
+end;

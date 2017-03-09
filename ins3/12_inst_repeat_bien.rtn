@@ -16,6 +16,7 @@ program
     with 
         number i,n;
     do
+        #n=1>2311;
         i=3324234%34;
         n= 231+323+23+45*4324 mod (2+45/6);
         repeat (i+n) times

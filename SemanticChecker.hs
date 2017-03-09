@@ -174,7 +174,7 @@ checkInstrN (WritelnN wordList (lineNum,_)) = do
 
 checkInstrN (ReadN s (lineNum, _)) = do
     found <- lookInSymTable s
-    when (found == Nothing) $ throwError $ OurError lineNum $ "Variable del read fuera de alcance"
+    when (found == Nothing) $ throwError $ OurError lineNum $ "'"++s++"' variable del read esta fuera del alcance." 
     return No
 
 checkInstrN (ReturnN expN (lineNum, _)) = do
@@ -187,7 +187,7 @@ checkInstrN (ReturnN expN (lineNum, _)) = do
 
 checkInstrN (ExprN expN) = do
     et <- checkExpN expN
-    when (et/=Void) $ warningToLog $ "Expresion con valor sin efecto en linea ?? ."
+    when (et/=Void) $ warningToLog $ "Expresion con valor sin efecto en linea "++show (fst (getPos expN))++"."
     return No
 
 
