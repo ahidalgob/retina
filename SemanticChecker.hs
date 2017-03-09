@@ -153,14 +153,13 @@ checkInstrN (WhileN expn lin (lineNum,_)) = do
     when (et /= Boolean) $ throwError $ OurError lineNum $ "Se esperaba tipo boolean en condicion de while (tipo encontrado: "++show et++")"
     ((|*|) Idk) <$> checkInstrListN lin
 
-{-
-checkInstrN (WriteN wordList) = do
-    checkWordListN wordList
+checkInstrN (WriteN wordList (lineNum,_)) = do
+    checkWordListN wordList `catchError` (\(OurErrorNoPos s) -> throwError $ OurError lineNum $ s)
     return No
 
-checkInstrN (WriteLnN wordList) = do
-    checkWordListN wordList
-    return No -}
+checkInstrN (WritelnN wordList (lineNum,_)) = do
+    checkWordListN wordList `catchError` (\(OurErrorNoPos s) -> throwError $ OurError lineNum $ s)
+    return No 
 
 checkInstrN (ReadN s (lineNum, _)) = do
     found <- lookInSymTable s
@@ -186,7 +185,7 @@ checkExpN :: ExpN -> OurMonad OurType
 
 checkExpN (IdN s (lineNum,_)) = do
     bo <- lookInSymTable s
-    when (bo==Nothing) $ throwError $ OurError lineNum $ "Variable "++s++" no definida."
+    when (bo==Nothing) $ throwError $ OurError lineNum $ "Variable \""++s++"\" no definida."
     return (fromJust bo)
 
 checkExpN (TrueN) = do
@@ -196,49 +195,49 @@ checkExpN (FalseN) = do
     return Boolean
 
 checkExpN (ParN exp) = do
-    ans <- checkExpN exp
-    when (ans==Void) $ throwError $ OurErrorNoPos ("La expresion entre parentesis no evalua a nada.")
-    return ans
+    t <- checkExpN exp
+    when (t==Void) $ throwError $ OurError (-666) ("La expresion entre parentesis no evalua a nada.")
+    return t
 
 checkExpN (ComparN exp s exp1 (lineNum,_)) = do
-    ans <- checkExpN exp
-    ans1 <- checkExpN exp1
-    when (ans1==Void && ans==Void) $ throwError $ OurError lineNum $ "Los parametros de la comparacion "++s++" evaluan a void." 
-    when (ans1/=ans) $ throwError $ OurError lineNum $ "Tipos de las expresiones de la comparacion "++s++" no concuerdan ( "++show ans++" "++show ans1++")." 
+    t <- checkExpN exp
+    t1 <- checkExpN exp1
+    when (t1==Void && t==Void) $ throwError $ OurError lineNum $ "Los parametros de la comparacion "++s++" evaluan a void." 
+    when (t1/=t) $ throwError $ OurError lineNum $ "Tipos de las expresiones de la comparacion "++s++" no concuerdan ( "++show t++","++show t1++")." 
     return Boolean
 
 checkExpN (NotN exp (lineNum,_)) = do
-    ans <- checkExpN exp
-    when (ans==Void) $ throwError $ OurError lineNum $ "El operador not espera un boolean y recibe un void." 
-    when (ans/=Boolean) $ throwError $ OurError lineNum $ "El operador not espera un boolean y recibe un number." 
-    return ans
+    t <- checkExpN exp
+    when (t==Void) $ throwError $ OurError lineNum $ "El operador not espera un boolean y recibe un void." 
+    when (t/=Boolean) $ throwError $ OurError lineNum $ "El operador not espera un boolean y recibe un number." 
+    return t
 
 checkExpN (LogicN exp s exp1 (lineNum,_)) = do
-    ans <- checkExpN exp
-    ans1 <- checkExpN exp1
-    when (ans/=Boolean || ans1/=Boolean) $ throwError $ OurError lineNum $ "El operador "++s++"espera un (boolean, boolean) y recibio ("++show ans++","++show ans++")."  
-    return ans
+    t <- checkExpN exp
+    t1 <- checkExpN exp1
+    when (t/=Boolean || t1/=Boolean) $ throwError $ OurError lineNum $ "El operador "++s++" espera un (boolean, boolean) y recibio ("++show t++","++show t++")."  
+    return t
 
 checkExpN (FuncN s expList (lineNum,_)) = do
     bo <-lookFunction s
     when (not bo) $ throwError $ OurError lineNum $ "Funcion "++s++" no definida."
     newList <- mapM checkExpN (listLEN expList)
     let bo1 = any (==Void) newList
-    when (bo1) $ throwError $ OurError lineNum $ "No puedes tener parametros que no retornen nada en la funcion."
+    when (bo1) $ throwError $ OurError lineNum $ "En la funcion "++s++" hay parametros que no retornan nada."
     bo3 <- checkFunction s newList 
     when (not bo3) $ throwError $ OurError lineNum $ "Tipos de los parametros de la funcion "++s++" no concuerdan." 
     getTypeReturn s
 
 checkExpN (MinusN exp (lineNum,_)) = do
-    ans <- checkExpN exp
-    when (ans/=Number) $ throwError $ OurError lineNum $ "El operador Minus espera un Number y recibe un "++(show ans)++"." 
-    return ans
+    t <- checkExpN exp
+    when (t/=Number) $ throwError $ OurError lineNum $ "El operador Minus espera un Number y recibe un "++(show t)++"." 
+    return t
 
 checkExpN (AritN exp s exp1 (lineNum,_)) = do
-    ans <- checkExpN exp
-    ans1 <- checkExpN exp1
-    when (ans/=Number || ans1/=Number) $ throwError $ OurError lineNum $ "El operador "++s++" espera un (number,number) y recibe un ("++show ans++","++show ans1++")."
-    return ans
+    t <- checkExpN exp
+    t1 <- checkExpN exp1
+    when (t/=Number || t1/=Number) $ throwError $ OurError lineNum $ "El operador "++s++" espera un (number,number) y recibe un ("++show t++","++show t1++")."
+    return t
 
 checkExpN (NumberLiteralN s) = do
     return Number
@@ -246,11 +245,10 @@ checkExpN (NumberLiteralN s) = do
 checkWordListN :: [WordN] -> OurMonad ()
 
 checkWordListN (wordList) = do
-    mapM_ fun  wordList
-    return ()
+    mapM_ fun wordList
     where fun (PWEN exp) = do
-            ans <- checkExpN exp
-            case ans of 
+            t <- checkExpN exp
+            case t of 
                 Void -> throwError $ OurErrorNoPos ("La expresion a mostrar en pantalla no evalua a nada.")
                 _ -> return ()    
           fun _ = return ()
