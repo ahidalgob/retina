@@ -1,0 +1,10 @@
+
+program 
+    with
+        number n;
+    do
+        i = 0;
+        true;
+        (false);
+    end;
+end;

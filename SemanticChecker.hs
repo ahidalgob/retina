@@ -202,7 +202,7 @@ checkExpN :: ExpN -> OurMonad OurType
 
 checkExpN (IdN s (lineNum,_)) = do
     bo <- lookInSymTable s
-    when (bo==Nothing) $ throwError $ OurError lineNum $ "Variable \""++s++"\" no definida."
+    when (bo==Nothing) $ throwError $ OurError lineNum $ "'"++s++"' no esta declarada en este alcance."
     return (fromJust bo)
 
 checkExpN (TrueN _) = do
@@ -213,13 +213,13 @@ checkExpN (FalseN _) = do
 
 checkExpN (ParN exp (lineNum,_)) = do
     t <- checkExpN exp
-    when (t==Void) $ throwError $ OurError lineNum $ ("La expresion entre parentesis no evalua a nada.")
+    when (t==Void) $ throwError $ OurError lineNum $ ("La expresion entre parentesis no puede ser de tipo void.")
     return t
 
 checkExpN (ComparN exp s exp1 (lineNum,_)) = do
     t <- checkExpN exp
     t1 <- checkExpN exp1
-    when (t1==Void && t==Void) $ throwError $ OurError lineNum $ "Los parametros de la comparacion "++s++" evaluan a void." 
+    when (t1==Void && t==Void) $ throwError $ OurError lineNum $ "Operandos invalidos de tipo 'void' y 'void' para el operador "++s++"." 
     when (t1/=t) $ throwError $ OurError lineNum $ "Tipos de las expresiones de la comparacion "++s++" no concuerdan ( "++show t++","++show t1++")." 
     when ((s/="==" && s/="/=") && (t==Boolean || t1==Boolean))  $ throwError $ OurError lineNum $ "En operador de comparacion "++s++" no acepta parametros de tipo boolean"  
     return Boolean
