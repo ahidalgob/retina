@@ -119,10 +119,10 @@ checkExpN (LogicN exp s exp1 (lineNum,_)) = do
 
 
 
-{-checkExpN (FuncN s expList (lineNum,_)) = do
+checkExpN (FuncN s expList (lineNum,_)) = do
     bo <-lookFunction s
     when (not bo) $ throwError $ OurError lineNum $ "Funcion "++s++" no definida."
-    newList <- mapM checkExpN expList
+    newList <- mapM checkExpN (listLEN expList)
     let bo1 = any (==Nothing) newList
     when (bo1) $ throwError $ OurError lineNum $ "No puedes tener parametros que no retornen nada en la funcion."
     bo2 <- lookFunction s
@@ -130,4 +130,5 @@ checkExpN (LogicN exp s exp1 (lineNum,_)) = do
     let newValList = map (fromJust) newList
     bo3 <- checkFunction s newValList 
     when (not bo3) $ throwError $ OurError lineNum $ "Tipos de los parametros de la funcion "++s++" no concuerdan." 
--}
+    ans <- getTypeReturn s
+    return ans
