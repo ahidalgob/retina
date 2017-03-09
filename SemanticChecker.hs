@@ -8,6 +8,28 @@ import Control.Monad
 import Control.Applicative
 import Data.Either
 
+data Returned = Yes | Idk | No
+
+(|+|) :: Returned -> Returned -> Returned
+(|*|) :: Returned -> Returned -> Returned
+
+Yes |+| _ = Yes
+_ |+| Yes = Yes
+Idk |+| _ = Idk
+_ |+| Idk = Idk
+No |+| No = No
+
+
+No |*| _ = No
+_ |*| No = No
+Idk |*| _ = Idk
+_ |*| Idk = Idk
+Yes |*| Yes = Yes
+
+
+
+
+
 typeNConvert :: TypeN -> OurType
 typeNConvert BooleanN = Boolean
 typeNConvert NumberN = Number
