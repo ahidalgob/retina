@@ -16,12 +16,12 @@ begin
     4;
 end;
 
-func fun2(number x, number y)
+func fun2(boolean x, number y) -> boolean
 begin
-    if (x>2) then 
+    if ((x==x)) then 
         3;
     else 
-        x+2;
+        31+2;
     end;
 end;
 
@@ -33,6 +33,6 @@ program
         true;
         (false);
         #(n+2*n);
-        fun1(n,n);
+        not (fun2(true,n));
     end;
 end;

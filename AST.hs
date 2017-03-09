@@ -7,17 +7,17 @@ module AST where
 import Control.Monad
 
 data ExpN =
-    IdN String (Int, Int)                           |
-    TrueN                                           |
-    FalseN                                          |
-    ParN ExpN                                       |
-    ComparN ExpN String ExpN (Int,Int)              |
-    NotN ExpN (Int,Int)                             |
-    LogicN ExpN String ExpN (Int,Int)               |
-    FuncN String ExpListN (Int,Int)                 |
-    MinusN ExpN (Int,Int)                           |
-    AritN ExpN String ExpN (Int,Int)                |
-    NumberLiteralN String
+    IdN { getString::String, getPos::(Int, Int) }                                   |
+    TrueN { getPos::(Int, Int) }                                                    |   
+    FalseN { getPos::(Int, Int) }                                                   |
+    ParN  { getExp::ExpN, getPos::(Int, Int) }                                      |
+    ComparN { getExp::ExpN, getString::String, getExp1::ExpN, getPos::(Int, Int) }  |
+    NotN { getExp::ExpN, getPos::(Int, Int) }                                       |
+    LogicN  { getExp::ExpN, getString::String, getExp1::ExpN, getPos::(Int, Int) }  |
+    FuncN  { getString::String, getExpList::ExpListN, getPos::(Int, Int) }          |
+    MinusN { getExp::ExpN, getPos::(Int, Int) }                                     |
+    AritN { getExp::ExpN, getString::String, getExp1::ExpN, getPos::(Int, Int) }    |
+    NumberLiteralN  { getString::String, getPos::(Int, Int) }
     deriving Show
 
 data TypeN =
@@ -97,13 +97,13 @@ printExpN :: Int -> ExpN -> IO()
 printExpN n (IdN s _) = do
     printId n s
 
-printExpN n (TrueN) = do
+printExpN n (TrueN _) = do
     putStrLnWithIdent n "Literal booleano: true"
      
-printExpN n (FalseN) = do
+printExpN n (FalseN _) = do
     putStrLnWithIdent n "Literal booleano: false"
 
-printExpN n (ParN exp) = do
+printExpN n (ParN exp _) = do
     putStrLnWithIdent n "Expresion entre parentesis:"
     printExpN (n+1) exp
      
@@ -144,7 +144,7 @@ printExpN n (AritN exp s exp1 _) = do
     putStrLnWithIdent (n+1) "Lado derecho:"
     printExpN (n+2) exp1
     
-printExpN n (NumberLiteralN s) = do
+printExpN n (NumberLiteralN s _) = do
     putStrLnWithIdent n $ "Literal numerico: " ++ s
 
 

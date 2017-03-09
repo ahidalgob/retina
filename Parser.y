@@ -15,51 +15,51 @@ import AST
 %token
     while           { WhileTK $$ }
     for             { ForTK $$ }
-    from            { FromTK _ }
+    from            { FromTK _ } 
     to              { ToTK _ }
-    by              { ByTK _ }
+    by              { ByTK _ } 
     begin           { BeginTK _ }
-    func            { FuncTK $$ } --
-    return          { ReturnTK $$ } --
+    func            { FuncTK $$ } 
+    return          { ReturnTK $$ } 
     repeat          { RepeatTK $$ }
     program         { ProgramTK _ }
-    with            { WithTK $$ } --
-    do              { DoTK _ }
+    with            { WithTK $$ } 
+    do              { DoTK _ } 
     end             { EndTK _ }
     times           { TimesTK _ }
-    not             { NotTK $$ } --
-    and             { AndTK $$ } --
-    or              { OrTK $$ } --
+    not             { NotTK $$ } 
+    and             { AndTK $$ } 
+    or              { OrTK $$ } 
     read            { ReadTK $$ }
     write           { WriteTK $$ }
     writeln         { WritelnTK $$ }
-    if              { IfTK $$ } --
-    then            { ThenTK _ }
+    if              { IfTK $$ } 
+    then            { ThenTK _ } 
     else            { ElseTK _ }
     number          { NumberTK _ }
     boolean         { BooleanTK _ }
-    true            { TrueTK _ }
-    false           { FalseTK _ }
-    div             { DivTK $$ } --
-    mod             { ModTK $$ } --
+    true            { TrueTK $$ }
+    false           { FalseTK $$ } 
+    div             { DivTK $$ } 
+    mod             { ModTK $$ } 
     ','             { CommaTK _ } 
-    n               { NumLiteralTK _ $$ }
+    n               { NumLiteralTK _ _ }
     string          { StringTK _ $$ }
-    id              { IdTK _ _ } ----
-    fid             { FuncIdTK _ _ } ----
-    '+'             { PlusTK $$ } --
-    '=='            { EqualTK $$ } --
-    '*'             { ProductTK $$ } --
-    '-'             { MinusTK $$ } --
-    '%'             { RestTK $$ } --
-    '/'             { DivExacTK $$ } --
-    '/='            { DifTK $$ } --
-    '>='            { GreaterEqualTK $$ } --
+    id              { IdTK _ _ } 
+    fid             { FuncIdTK _ _ } 
+    '+'             { PlusTK $$ } 
+    '=='            { EqualTK $$ } 
+    '*'             { ProductTK $$ } 
+    '-'             { MinusTK $$ } 
+    '%'             { RestTK $$ } 
+    '/'             { DivExacTK $$ } 
+    '/='            { DifTK $$ } 
+    '>='            { GreaterEqualTK $$ } 
     '<='            { LessEqualTK $$ }
     '>'             { GreaterTK $$ }
     '<'             { LessTK $$ }
-    '='             { AssignTK $$ } --
-    '('             { ParenOpenTK _ }
+    '='             { AssignTK $$ } 
+    '('             { ParenOpenTK $$ }
     ')'             { ParenCloseTK _ }
     ';'             { SemicolonTK _ }
     '->'            { TypeTK _ }
@@ -99,9 +99,9 @@ T : boolean { BooleanN }
 -- Expresion (Construcciones que evaluan boolean o number
 --             (o llamados a funciones que pueden evaluar void))
 E   : id { IdN (tokenString $1) (tokenPos $1) }
-    | true { TrueN }
-    | false { FalseN }
-    | '(' E ')' { ParN $2 }
+    | true { TrueN $1 }
+    | false { FalseN $1 }
+    | '(' E ')' { ParN $2 $1 }
     | E '<' E { ComparN $1 "<" $3 $2 }
     | E '>' E { ComparN $1 ">" $3 $2 }
     | E '<=' E { ComparN $1 "<=" $3 $2 }
@@ -120,7 +120,7 @@ E   : id { IdN (tokenString $1) (tokenPos $1) }
     | E '%' E       { AritN $1 "%" $3 $2 }
     | E mod E       { AritN $1 "mod" $3 $2 }
     | E div E       { AritN $1 "div" $3 $2 }
-    | n { NumberLiteralN $1 }
+    | n { NumberLiteralN (tokenString $1) (tokenPos $1) }
 
 -- Lista de expresiones (argumentos de una funcion)
 LE  : LENV      { LEN $ listLENVN $1 }
