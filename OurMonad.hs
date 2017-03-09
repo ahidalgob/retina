@@ -41,7 +41,7 @@ type OurMonad a = StateT OurState (WriterT OurLog (Either OurError)) a
 runOurMonad :: OurMonad a -> OurState -> Either OurError ((a, OurState), OurLog)
 runOurMonad f a = runWriterT (runStateT f a)
 
-getLog f a = show $ snd $ getRight $ runOurMonad f a `catchError` (\(OurError pos s) -> error $ "Error en linea: "++show pos++", "++s)
+getLog f a = show $ snd $ getRight $ runOurMonad f a `catchError` (\(OurError pos s) -> error $ "\nError en linea "++show pos++":\n"++s)
     where
         getRight (Right x) = x
 

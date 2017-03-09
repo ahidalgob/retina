@@ -1,0 +1,23 @@
+func myFun(number x, number y) -> number
+begin
+    with
+        number n;
+    do
+        write "Hi";
+        for i from 4 to x+3 do
+            write "i";
+        end;
+        writeln "";
+    end;
+    if (x>2) then 
+        return 3;
+    else 
+        #return x+2;
+    end;
+    4;
+end;
+
+program 
+
+
+end;

@@ -52,13 +52,15 @@ checkConstrN (LDFN (funcDefN:rest)) = do
     addFunctionSign funId paramList retType
     setReturnType $ Just retType
 
-    
     newScope
     mapM_ (adder funId lineNum) paramList
     lastScopeToLog $ '_':funId
 
-    checkInstrListN instrListN
-    -- REVISAR SI SE RETORNO, DAR ERROR O ADVERTENCIA RESPECTIVA
+    returned <- checkInstrListN instrListN
+    when (retType /= Void) $ case returned of
+        Yes -> return ()
+        Idk -> warningToLog $ "linea "++show lineNum++": Funcion "++funId++" puede no alcanzar un return."
+        No -> throwError $ OurError lineNum $ "Funcion "++funId++" no tiene instruccion de return."
     removeScope
     setReturnType Nothing
     checkConstrN $ LDFN rest
@@ -143,10 +145,12 @@ checkInstrN (IfThenN expn lin (lineNum,_)) = do
 checkInstrN (IfThenElseN expn lin1 lin2 (lineNum,_)) = do
     et <- checkExpN expn
     when (et /= Boolean) $ throwError $ OurError lineNum $ "Se esperaba tipo boolean en condicion de if (tipo encontrado: "++show et++")"
-    --res1 <- checkInstrListN lin1
-    --res2 <- checkInstrListN lin2
-    --return $ res1 |*| res2
-    (|*|) <$> checkInstrListN lin1 <*> checkInstrListN lin2
+    ret1 <- checkInstrListN lin1
+    ret2 <- checkInstrListN lin2
+    case (ret1, ret2) of
+        (Yes, Yes) -> return Yes
+        (No, No) -> return No
+        (_, _) -> return Idk
 
 checkInstrN (WhileN expn lin (lineNum,_)) = do
     et <- checkExpN expn
