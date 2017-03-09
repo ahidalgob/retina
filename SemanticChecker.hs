@@ -108,6 +108,11 @@ checkInstrN _ = return Yes
 
 checkExpN :: ExpN -> OurMonad OurType
 
+checkExpN (IdN s (lineNum,_)) = do
+    bo <- lookInSymTable s
+    when (bo==Nothing) $ throwError $ OurError lineNum $ "Variable "++s++" no definida."
+    return (fromJust bo)
+
 checkExpN (TrueN) = do
     return Boolean
 
@@ -122,7 +127,7 @@ checkExpN (ParN exp) = do
 checkExpN (ComparN exp s exp1 (lineNum,_)) = do
     ans <- checkExpN exp
     ans1 <- checkExpN exp1
-    when (ans1==Void && ans==Void) $ throwError $ OurError lineNum $ "MENSAJE CON SENTIDO ACATipos de las expresiones de la comparacion "++s++" no concuerdan ( "++show ans++" "++show ans1++")." 
+    when (ans1==Void && ans==Void) $ throwError $ OurError lineNum $ "Los parametros de la comparacion "++s++" evaluan a void." 
     when (ans1/=ans) $ throwError $ OurError lineNum $ "Tipos de las expresiones de la comparacion "++s++" no concuerdan ( "++show ans++" "++show ans1++")." 
     return ans
 
@@ -135,7 +140,7 @@ checkExpN (NotN exp (lineNum,_)) = do
 checkExpN (LogicN exp s exp1 (lineNum,_)) = do
     ans <- checkExpN exp
     ans1 <- checkExpN exp1
-    when (ans/=Boolean || ans1/=Boolean) $ throwError $ OurError lineNum $ "El operador "++s++"espera un (boolean, boolean) y recibio (asdasdasdasd)."  
+    when (ans/=Boolean || ans1/=Boolean) $ throwError $ OurError lineNum $ "El operador "++s++"espera un (boolean, boolean) y recibio ("++show ans++","++show ans++")."  
     return ans
 
 checkExpN (FuncN s expList (lineNum,_)) = do
@@ -152,3 +157,13 @@ checkExpN (MinusN exp (lineNum,_)) = do
     ans <- checkExpN exp
     when (ans/=Number) $ throwError $ OurError lineNum $ "El operador Minus espera un Number y recibe un "++(show ans)++"." 
     return ans
+
+checkExpN (AritN exp s exp1 (lineNum,_)) = do
+    ans <- checkExpN exp
+    ans1 <- checkExpN exp1
+    when (ans/=Number || ans1/=Number) $ throwError $ OurError lineNum $ "El operador "++s++" espera un (number,number) y recibe un ("++show ans++","++show ans1++")."
+    return ans
+
+checkExpN (NumberLiteralN s) = do
+    return Number
+
