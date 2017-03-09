@@ -37,18 +37,42 @@ checkConstrN (PN ldfN instrListN) = do
     checkInstrListN instrListN
     return ()
 
-checkConstrN (LDFN []) = do
-    return ()
+checkConstrN (LDFN l) = do
+    mapM_ checkFuncDefN l
 
-checkConstrN (LDFN (funcDefN:rest)) = do
+-- el encargado de abrir y cerrar el scope (with) debe ser el que haga
+-- newScope y removeScope
+checkConstrN (LDN l) = do
+    mapM_ proccessTypeAndList l 
+    where 
+        proccessTypeAndList :: (TypeN, [VarN]) -> OurMonad ()
+        proccessTypeAndList (tN, varNList) = do
+            let t = typeNConvert tN
+            mapM_ (adder t) varNList -- lanza error sin pos y en el with catcharlo y lanzarlo bien
+        adder :: OurType -> VarN -> OurMonad ()
+        adder t varN = do 
+            let (s,me) = case varN of
+                    (VarN st) -> (st, Nothing)
+                    (VarValN st e) -> (st, Just e)
+            case me of
+                    (Just e) -> do
+                        te <- checkExpN e
+                        when (te /= t) $ throwError $ OurErrorNoPos ("Tipo de la variable \""++s++"\" y tipo de su valor no coinciden en su declaracion.")
+                    Nothing -> return ()
+            x <- lookInLastScope s
+            case x of
+                    Nothing -> addToSymTable (s, t)
+                    (Just _) -> throwError $ OurErrorNoPos ("Variable \""++s++"\" definida dos veces en bloque with-do.")
+
+
+checkFuncDefN :: FuncDefN -> OurMonad ()
+checkFuncDefN funcDefN = do
     let (funId, paramList, instrListN, lineNum, retType) = case funcDefN of
             DFN s p i (ln,_) -> (s,(map (\(x,y) -> (y, typeNConvert x))).listLPN $ p,i,ln, Void)
             RDFN s p ret i (ln,c) -> (s,(map (\(x,y) -> (y, typeNConvert x))).listLPN $ p,i,ln, typeNConvert ret)
     
     repeated <- lookFunction funId
-
     when (repeated) $ throwError $ OurError lineNum $ "Funcion "++funId++" redefinida."
-
     addFunctionSign funId paramList retType
     setReturnType $ Just retType
 
@@ -63,38 +87,12 @@ checkConstrN (LDFN (funcDefN:rest)) = do
         No -> throwError $ OurError lineNum $ "Funcion "++funId++" no tiene instruccion de return."
     removeScope
     setReturnType Nothing
-    checkConstrN $ LDFN rest
     where adder funId lineNum (s, t) = do   x <- lookInLastScope s
                                             case x of
                                                 Nothing -> addToSymTable (s, t)
                                                 (Just _) -> throwError $ OurError lineNum ("Variable \""++s++"\" definida dos veces en parametros de funcion "++funId++".")
 
 
--- el encargado de abrir y cerrar el scope (with) debe ser el que haga
--- newScope y removeScope
-checkConstrN (LDN []) = do
-    return ()
-
-checkConstrN (LDN ((tN,varNList):rest)) = do
-    let t = typeNConvert tN
-    mapM_ (adder t) varNList -- lanza error sin pos y en el with catcharlo y lanzarlo bien
-    checkConstrN $ LDN rest
-    where
-        adder t varN = do 
-            let (s,me) = case varN of
-                    (VarN st) -> (st, Nothing)
-                    (VarValN st e) -> (st, Just e)
-
-            case me of
-                    (Just e) -> do
-                        te <- checkExpN e
-                        when (te /= t) $ throwError $ OurErrorNoPos ("Tipo de la variable \""++s++"\" y tipo de su valor no coinciden en su declaracion.")
-                    Nothing -> return ()
-            x <- lookInLastScope s
-            case x of
-                    Nothing -> addToSymTable (s, t)
-                    (Just _) -> throwError $ OurErrorNoPos ("Variable \""++s++"\" definida dos veces en bloque with-do.")
-            
 
 checkInstrListN :: InstrListN -> OurMonad Returned
 checkInstrListN (LIN instrList) = do
