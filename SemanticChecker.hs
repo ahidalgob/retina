@@ -7,6 +7,7 @@ import Control.Monad.Writer
 import Control.Monad
 import Control.Applicative
 import Data.Either
+import Data.Maybe
 
 data Returned = Yes | Idk | No
 
@@ -88,7 +89,8 @@ checkConstrN (LDN ((tN,varNList):rest)) = do
             case me of
                     (Just e) -> do
                         te <- checkExpN e
-                        when (te /= t) $ throwError $ OurErrorNoPos ("Tipo de la variable \""++s++"\" y tipo de su valor no coinciden en su declaracion.")
+                        when (te /= Just t) $ throwError $ OurErrorNoPos ("Tipo de la variable \""++s++"\" y tipo de su valor no coinciden en su declaracion.")
+
 
 
 checkInstrListN :: InstrListN -> OurMonad Returned
@@ -101,14 +103,49 @@ checkInstrN (WithDoN ldn lin (lineNum,_)) = do
     checkConstrN ldn `catchError` (\(OurErrorNoPos s) -> throwError $ OurError lineNum s)
     return Yes
 
-checkExpN :: ExpN -> OurMonad OurType
+checkExpN :: ExpN -> OurMonad (Maybe OurType)
 
 checkExpN (TrueN) = do
-    return Boolean
+    return $ Just Boolean
 
 checkExpN (FalseN) = do
-    return Boolean
+    return $ Just Boolean
 
 checkExpN (ParN exp) = do
     ans <- checkExpN exp
+    return ans
+
+checkExpN (ComparN exp s exp1 (lineNum,_)) = do
+    ans <- checkExpN exp
+    ans1 <- checkExpN exp1
+    when (ans1/=ans) $ throwError $ OurError lineNum $ "Tipos de las expresiones de la comparacion "++s++" no concuerdan ( "++show ans++" "++show ans1++")." 
+    return ans
+
+checkExpN (NotN exp (lineNum,_)) = do
+    ans <- checkExpN exp
+    when (ans/=Just Boolean) $ throwError $ OurError lineNum $ "El operador not espera un Boolean y recibe un Number." 
+    return ans
+
+checkExpN (LogicN exp s exp1 (lineNum,_)) = do
+    ans <- checkExpN exp
+    ans1 <- checkExpN exp1
+    when (ans/=Just Boolean) $ throwError $ OurError lineNum $ "El operador "++s++"espera un Boolean y el primer elemento es un Number." 
+    when (ans1/=Just Boolean) $ throwError $ OurError lineNum $ "El operador "++s++"espera un Boolean y el segundo elemento es un Number."  
+    return ans
+
+
+
+
+checkExpN (FuncN s expList (lineNum,_)) = do
+    bo <-lookFunction s
+    when (not bo) $ throwError $ OurError lineNum $ "Funcion "++s++" no definida."
+    newList <- mapM checkExpN (listLEN expList)
+    let bo1 = any (==Nothing) newList
+    when (bo1) $ throwError $ OurError lineNum $ "No puedes tener parametros que no retornen nada en la funcion."
+    bo2 <- lookFunction s
+    when (not bo2) $ throwError $ OurError lineNum $ "Funcion "++s++" no definida."
+    let newValList = map (fromJust) newList
+    bo3 <- checkFunction s newValList 
+    when (not bo3) $ throwError $ OurError lineNum $ "Tipos de los parametros de la funcion "++s++" no concuerdan." 
+    ans <- getTypeReturn s
     return ans

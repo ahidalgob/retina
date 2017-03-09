@@ -97,6 +97,11 @@ checkFunction s list = state (\os -> let listF = getParamList $ head $ filter ((
                                          listType = map snd listF
                                      in (listType==list,os))
 
+getTypeReturn :: String -> OurMonad (Maybe OurType)
+getTypeReturn s = state (\os -> let listFunc = getFuncSigns.getSymTable $ os
+                                    func = filter ((==s).getId) listFunc 
+                                in (getType.head $ func,os))
+
 
 setReturnT :: Maybe OurType -> OurMonad ()
 setReturnT typeR = state (\os -> ((),OurState (getSymTable os) (getNestedD os) typeR) )
