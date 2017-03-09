@@ -1,0 +1,40 @@
+# Probar bloques.
+func plus(number op1, number op2) -> number
+begin
+    return op1 + op2;
+end;
+func forward(number x)
+begin
+end;
+func avanzada(boolean b, number n)
+begin
+    if b then
+        forward(50 + n);
+    else
+        forward(plus(3,4));
+    end;
+end;
+program
+  with
+      number i;
+      number j = 78 + plus(4,2); 
+  do
+      i = plus(3,2);
+        with
+          boolean i;
+        do
+          i = true == false;
+          while i do
+            avanzada(i, plus(j,3));
+          end;
+          for j from 1.5 to 4.5 do
+            write j, " ";
+          end;
+          for j from 1.5 to 4.5 by 0.1 do
+            write j, " ";
+          end;
+          repeat 5 times forward(3); end;
+        end;
+      j = 78 + i;
+  end;
+end;

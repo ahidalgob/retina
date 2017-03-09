@@ -1,0 +1,10 @@
+# Probar que ocurre al usar variables no declaradas.
+program
+  with
+      number i;
+      number j = 78;
+  do
+      i = 27;
+      abc = 78;
+  end;
+end;

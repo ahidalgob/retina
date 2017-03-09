@@ -1,0 +1,15 @@
+# Probar que ocurre al usar variables iguales en distintos bloques with.
+program
+  with
+      number i;
+      number j = 78;
+  do
+      i = 27;
+        with
+          boolean i;
+        do
+          i = true;
+        end;
+      j = 78 + i;
+  end;
+end;

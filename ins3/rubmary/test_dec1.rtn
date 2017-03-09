@@ -1,0 +1,11 @@
+# Probar que ocurre al declarar una variable dos veces en el mismo alcance.
+program
+  with
+      number i;
+      boolean x, y, z, i;
+      number j = 78;
+  do
+      i = 27;
+  end;
+end;
+

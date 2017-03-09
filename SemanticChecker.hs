@@ -188,7 +188,7 @@ checkInstrN (ReturnN expN (lineNum, _)) = do
     when (rt == Nothing) $ throwError $ OurError lineNum $ "No puede haber instrucciones de return fuera de una funcion."
     when (rt == Just Void) $ throwError $ OurError lineNum $ "No puede haber instrucciones de return en una funcion de tipo void."
     et <- checkExpN expN
-    when (fromJust rt /= et) $ throwError $ OurError lineNum $ "Return esperaba tipo "++show rt++"pero la expresion tiene tipo"++show et++"."
+    when (fromJust rt /= et) $ throwError $ OurError lineNum $ "La funcion esperaba un tipo de retorno "++show (fromJust rt)++" pero la expresion tiene tipo "++show et++"."
     return Yes
 
 checkInstrN (ExprN expN) = do

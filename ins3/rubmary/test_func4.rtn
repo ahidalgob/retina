@@ -1,0 +1,28 @@
+# Probar que no puedas declarar varias funciones con el mismo nombre.
+func plus(number op1, number op2) -> number
+begin
+    return op1 + op2;
+end;
+func forward(number x)
+begin
+end;
+func plus(boolean b, number n)
+begin
+    if b then
+        forward(50 + n);
+    end;
+end;
+program
+  with
+      number i;
+      number j = 78 + plus(4, 3);
+  do
+      i = plus(3,2);
+        with
+          boolean i;
+        do
+          i = true;
+        end;
+      j = 78 + i;
+  end;
+end;

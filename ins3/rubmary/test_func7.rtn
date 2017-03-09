@@ -1,0 +1,32 @@
+# Probar que no puedas meter return en una función void.
+func plus(number op1, number op2) -> number
+begin
+    return op1 + op2;
+end;
+func forward(number x)
+begin
+end;
+func avanzada(boolean b, number n)
+begin
+    if b then
+        forward(50 + n);
+    else
+        forward(plus(3,4));
+    end;
+    return n;
+end;
+program
+  with
+      number i;
+      number j = 78 + plus(4, 3);
+  do
+      i = plus(3,2);
+        with
+          boolean i;
+        do
+          i = true;
+          avanzada(i,plus(j,3));
+        end;
+      j = 78 + i;
+  end;
+end;
