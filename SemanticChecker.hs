@@ -188,15 +188,15 @@ checkExpN (IdN s (lineNum,_)) = do
     when (bo==Nothing) $ throwError $ OurError lineNum $ "Variable \""++s++"\" no definida."
     return (fromJust bo)
 
-checkExpN (TrueN) = do
+checkExpN (TrueN _) = do
     return Boolean
 
-checkExpN (FalseN) = do
+checkExpN (FalseN _) = do
     return Boolean
 
-checkExpN (ParN exp) = do
+checkExpN (ParN exp (lineNum,_)) = do
     t <- checkExpN exp
-    when (t==Void) $ throwError $ OurError (-666) ("La expresion entre parentesis no evalua a nada.")
+    when (t==Void) $ throwError $ OurError lineNum $ ("La expresion entre parentesis no evalua a nada.")
     return t
 
 checkExpN (ComparN exp s exp1 (lineNum,_)) = do
@@ -204,6 +204,7 @@ checkExpN (ComparN exp s exp1 (lineNum,_)) = do
     t1 <- checkExpN exp1
     when (t1==Void && t==Void) $ throwError $ OurError lineNum $ "Los parametros de la comparacion "++s++" evaluan a void." 
     when (t1/=t) $ throwError $ OurError lineNum $ "Tipos de las expresiones de la comparacion "++s++" no concuerdan ( "++show t++","++show t1++")." 
+    when ((s/="==" && s/="/=") && (t==Boolean || t1==Boolean))  $ throwError $ OurError lineNum $ "En operador de comparacion "++s++" no acepta parametros de tipo boolean"  
     return Boolean
 
 checkExpN (NotN exp (lineNum,_)) = do
@@ -239,7 +240,7 @@ checkExpN (AritN exp s exp1 (lineNum,_)) = do
     when (t/=Number || t1/=Number) $ throwError $ OurError lineNum $ "El operador "++s++" espera un (number,number) y recibe un ("++show t++","++show t1++")."
     return t
 
-checkExpN (NumberLiteralN s) = do
+checkExpN (NumberLiteralN s _) = do
     return Number
 
 checkWordListN :: [WordN] -> OurMonad ()
