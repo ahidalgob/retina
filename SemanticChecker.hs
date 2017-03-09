@@ -84,15 +84,17 @@ checkConstrN (LDN ((tN,varNList):rest)) = do
             let (s,me) = case varN of
                     (VarN st) -> (st, Nothing)
                     (VarValN st e) -> (st, Just e)
-            x <- lookInLastScope s
-            case x of
-                    Nothing -> addToSymTable (s, t)
-                    (Just _) -> throwError $ OurErrorNoPos ("Variable \""++s++"\" definida dos veces en bloque with-do.")
+
             case me of
                     (Just e) -> do
                         te <- checkExpN e
                         when (te /= t) $ throwError $ OurErrorNoPos ("Tipo de la variable \""++s++"\" y tipo de su valor no coinciden en su declaracion.")
                     Nothing -> return ()
+            x <- lookInLastScope s
+            case x of
+                    Nothing -> addToSymTable (s, t)
+                    (Just _) -> throwError $ OurErrorNoPos ("Variable \""++s++"\" definida dos veces en bloque with-do.")
+            
 
 checkInstrListN :: InstrListN -> OurMonad Returned
 checkInstrListN (LIN instrList) = do
@@ -101,11 +103,15 @@ checkInstrListN (LIN instrList) = do
 checkInstrN :: InstrN -> OurMonad Returned
 checkInstrN (WithDoN ldn lin (lineNum,_)) = do
     newScope
-    checkConstrN ldn `catchError` (\(OurErrorNoPos s) -> throwError $ OurError lineNum s)
+    checkConstrN ldn `catchError` (reThrow lineNum)
     lastScopeToLog "bloque with-do"
     res <- checkInstrListN lin
     removeScope
     return res
+    where
+        reThrow :: Int -> OurError -> OurMonad ()
+        reThrow lineNum (OurErrorNoPos s) = throwError $ OurError lineNum s
+        reThrow lineNum e = throwError e
 
 checkInstrN (RepeatN expn lin (lineNum,_)) = do
     et <- checkExpN expn
