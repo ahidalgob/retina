@@ -10,11 +10,11 @@ import Data.Either
 data OurError = OurError Int String | OurErrorNoPos String
 instance Error OurError
 
-data OurType = Number | Boolean deriving (Eq, Show)
+data OurType = Number | Boolean | Void deriving (Eq, Show)
 
 data Scope = Scope {getList::[(String, OurType)]}
 
-data FuncSign = FuncSign {getId::String, getType::(Maybe OurType), getParamList::[(String,OurType)]}
+data FuncSign = FuncSign {getId::String, getType:: OurType, getParamList::[(String,OurType)]}
 
 data SymTable = SymTable {getScopes::[Scope], getFuncSigns::[FuncSign]}
 
@@ -78,7 +78,7 @@ addToSymTable pair = state (\os -> let scopes' = getScopes.getSymTable $ os
                                    in ((), OurState (SymTable newScopeList (getFuncSigns $ getSymTable os)) (getNestedD os) (getReturnT os)))
 
 
-addFunctionSign :: String -> [(String, OurType)] -> (Maybe OurType) -> OurMonad () -- No crea el scope
+addFunctionSign :: String -> [(String, OurType)] -> OurType -> OurMonad () -- No crea el scope
 addFunctionSign s params typ = state (\os -> let newFunc = FuncSign s typ params
                                                  newSymTable = SymTable (getScopes.getSymTable $ os) (newFunc:(getFuncSigns.getSymTable $ os))
                                              in ((),OurState newSymTable (getNestedD os) (getReturnT os))) 
@@ -97,7 +97,7 @@ checkFunction s list = state (\os -> let listF = getParamList $ head $ filter ((
                                          listType = map snd listF
                                      in (listType==list,os))
 
-getTypeReturn :: String -> OurMonad (Maybe OurType)
+getTypeReturn :: String -> OurMonad OurType
 getTypeReturn s = state (\os -> let listFunc = getFuncSigns.getSymTable $ os
                                     func = filter ((==s).getId) listFunc 
                                 in (getType.head $ func,os))
