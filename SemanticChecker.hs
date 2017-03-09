@@ -90,7 +90,7 @@ checkConstrN (LDN ((tN,varNList):rest)) = do
                     (Just e) -> do
                         te <- checkExpN e
                         when (te /= Just t) $ throwError $ OurErrorNoPos ("Tipo de la variable \""++s++"\" y tipo de su valor no coinciden en su declaracion.")
-
+                    Nothing -> return ()
 
 
 checkInstrListN :: InstrListN -> OurMonad Returned
@@ -101,7 +101,11 @@ checkInstrN :: InstrN -> OurMonad Returned
 checkInstrN (WithDoN ldn lin (lineNum,_)) = do
     newScope
     checkConstrN ldn `catchError` (\(OurErrorNoPos s) -> throwError $ OurError lineNum s)
+    lastScopeToLog "bloque with-do"
+    removeScope
     return Yes
+
+checkInstrN _ = return Yes
 
 checkExpN :: ExpN -> OurMonad (Maybe OurType)
 

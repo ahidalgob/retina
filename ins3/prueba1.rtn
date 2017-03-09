@@ -1,5 +1,10 @@
 func fun1(number x, number y) -> number
 begin
+    with
+        number n;
+    do
+        write "Hi";
+    end;
     if (x>2) then 
         return 3;
     else 
