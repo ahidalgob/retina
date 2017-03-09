@@ -1,0 +1,20 @@
+func myFun(number x, number y) 
+begin
+    with
+        number n;
+    do
+        4;
+    end;
+end;
+
+func myFun3(number x, number y) 
+begin
+    3;
+end;
+
+program 
+    myFun(323,true);
+    myFun(23);
+    myFun(231,213,123);
+    myFun(true,true);
+end;

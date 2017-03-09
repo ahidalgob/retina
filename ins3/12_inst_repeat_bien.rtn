@@ -1,0 +1,26 @@
+func myFun(number x, number y) 
+begin
+    with
+        number n;
+    do
+        4;
+    end;
+end;
+
+func myFun3(number x, number y) 
+begin
+    3;
+end;
+
+program 
+    with 
+        number i,n;
+    do
+        i=3324234%34;
+        n= 231+323+23+45*4324 mod (2+45/6);
+        repeat (i+n) times
+            myFun3(323,34);
+            myFun(23,32);
+        end;
+    end;
+end;

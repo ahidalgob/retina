@@ -98,10 +98,10 @@ lookFunction s = state (\os -> let funcsList = map (getId) (getFuncSigns.getSymT
                                in (ans,os))
 
 
-checkFunction :: String -> [OurType] -> OurMonad Bool
+checkFunction :: String -> [OurType] -> OurMonad (Bool,Int)
 checkFunction s list = state (\os -> let listF = getParamList $ head $ filter ((==s).getId) (getFuncSigns.getSymTable $ os)
                                          listType = map snd listF
-                                     in (listType==list,os))
+                                     in ((listType==list,length listType),os))
 
 getTypeReturn :: String -> OurMonad OurType
 getTypeReturn s = state (\os -> let listFunc = getFuncSigns.getSymTable $ os

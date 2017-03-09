@@ -1,0 +1,20 @@
+func myFun(number x, number y) 
+begin
+    with
+        number n;
+    do
+        4;
+    end;
+end;
+
+func myFun3(number x, number y) 
+begin
+    3;
+end;
+
+program 
+    #4 or 5;
+    #true or 4;
+    #true and 4+4234 mod 3;    
+    true or false or true and true and true;
+end;

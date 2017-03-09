@@ -214,35 +214,38 @@ checkExpN (ComparN exp s exp1 (lineNum,_)) = do
     t <- checkExpN exp
     t1 <- checkExpN exp1
     when (t1==Void && t==Void) $ throwError $ OurError lineNum $ "Operandos invalidos de tipo 'void' y 'void' para el operador "++s++"." 
-    when (t1/=t) $ throwError $ OurError lineNum $ "Tipos de las expresiones de la comparacion "++s++" no concuerdan ( "++show t++","++show t1++")." 
-    when ((s/="==" && s/="/=") && (t==Boolean || t1==Boolean))  $ throwError $ OurError lineNum $ "En operador de comparacion "++s++" no acepta parametros de tipo boolean"  
+    when (t1/=t) $ throwError $ OurError lineNum $ "Operandos del operador "++s++" no concuerdan '"++show t++"' y '"++show t1++"'." 
+    when ((s/="==" && s/="/=") && (t==Boolean || t1==Boolean))  $ throwError $ OurError lineNum $ "Operandos del operador "++s++" no acepta parametros de tipo boolean"  
     return Boolean
 
 checkExpN (NotN exp (lineNum,_)) = do
     t <- checkExpN exp
-    when (t==Void) $ throwError $ OurError lineNum $ "El operador not espera un boolean y recibe un void." 
+    when (t==Void) $ throwError $ OurError lineNum $ "El operador not espera un 'boolean' y recibe un 'void' ." 
     when (t/=Boolean) $ throwError $ OurError lineNum $ "El operador not espera un boolean y recibe un number." 
     return t
 
 checkExpN (LogicN exp s exp1 (lineNum,_)) = do
     t <- checkExpN exp
     t1 <- checkExpN exp1
-    when (t/=Boolean || t1/=Boolean) $ throwError $ OurError lineNum $ "El operador "++s++" espera un (boolean, boolean) y recibio ("++show t++","++show t++")."  
+    when (t/=Boolean || t1/=Boolean) $ throwError $ OurError lineNum $ "El operador "++s++" espera un (boolean, boolean) y recibio ("++show t++","++show t1++")."  
     return t
 
 checkExpN (FuncN s expList (lineNum,_)) = do
     bo <-lookFunction s
-    when (not bo) $ throwError $ OurError lineNum $ "Funcion "++s++" no definida."
+    when (not bo) $ throwError $ OurError lineNum $ "'"++s++"' no esta definida en este alcance."
     newList <- mapM checkExpN (listLEN expList)
     let bo1 = any (==Void) newList
-    when (bo1) $ throwError $ OurError lineNum $ "En la funcion "++s++" hay parametros que no retornan nada."
-    bo3 <- checkFunction s newList 
-    when (not bo3) $ throwError $ OurError lineNum $ "Tipos de los parametros de la funcion "++s++" no concuerdan." 
+    when (bo1) $ throwError $ OurError lineNum $ "Uso invalido de expresiones void en los parametros de '"++s++"'."
+    (bo3,len) <- checkFunction s newList 
+    let len2 = length newList
+    when (not bo3 && len==len2) $ throwError $ OurError lineNum $ "Tipos de los parametros de la funcion "++s++" no concuerdan." 
+    when (not bo3 && len<len2) $ throwError $ OurError lineNum $ "Muchos argumentos para la funcion '"++s++"'."
+    when (not bo3 && len>len2) $ throwError $ OurError lineNum $ "Muy pocos argumentos para la funcion '"++s++"'."  
     getTypeReturn s
 
 checkExpN (MinusN exp (lineNum,_)) = do
     t <- checkExpN exp
-    when (t/=Number) $ throwError $ OurError lineNum $ "El operador Minus espera un Number y recibe un "++(show t)++"." 
+    when (t/=Number) $ throwError $ OurError lineNum $ "El operador '-' espera un Number y recibe un "++(show t)++"." 
     return t
 
 checkExpN (AritN exp s exp1 (lineNum,_)) = do
