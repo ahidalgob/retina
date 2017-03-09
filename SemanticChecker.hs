@@ -9,7 +9,7 @@ import Control.Applicative
 import Data.Either
 import Data.Maybe
 
-data Returned = Yes | Idk | No
+data Returned = Yes | Idk | No deriving Eq
 
 (|+|) :: Returned -> Returned -> Returned
 (|*|) :: Returned -> Returned -> Returned
@@ -50,7 +50,7 @@ checkConstrN (LDFN (funcDefN:rest)) = do
     when (repeated) $ throwError $ OurError lineNum $ "Funcion "++funId++" redefinida."
 
     addFunctionSign funId paramList retType
-    setReturnT $ Just retType
+    setReturnType $ Just retType
 
     
     newScope
@@ -60,7 +60,7 @@ checkConstrN (LDFN (funcDefN:rest)) = do
     checkInstrListN instrListN
 
     removeScope
-    setReturnT Nothing
+    setReturnType Nothing
     checkConstrN $ LDFN rest
     where adder funId lineNum (s, t) = do   x <- lookInLastScope s
                                             case x of
@@ -101,8 +101,84 @@ checkInstrN (WithDoN ldn lin (lineNum,_)) = do
     newScope
     checkConstrN ldn `catchError` (\(OurErrorNoPos s) -> throwError $ OurError lineNum s)
     lastScopeToLog "bloque with-do"
+    res <- checkInstrListN lin
     removeScope
+    return res
+
+checkInstrN (RepeatN expn lin (lineNum,_)) = do
+    et <- checkExpN expn
+    when (et /= Number) $ throwError $ OurError lineNum $ "La expresion de una instruccion repeat x times debe ser de tipo number. (Tipo encontrado: "++show et++")" 
+    checkInstrListN lin
+
+checkInstrN (ForN s expn1 expn2 lin (lineNum,_)) = do
+    e1t <- checkExpN expn1
+    e2t <- checkExpN expn2
+    when (e1t /= Number || e2t /= Number) $ throwError $ OurError lineNum $"Las expresiones de un For deben ser de tipo number (Tipos encontrados ("++show e1t++","++show e2t++"))"
+    newScope
+    addToSymTable (s, Number)
+    lastScopeToLog "for"
+    res <- checkInstrListN lin
+    removeScope
+    return res
+
+checkInstrN (ForByN s expn1 expn2 expn3 lin (lineNum,_)) = do
+    e1t <- checkExpN expn1
+    e2t <- checkExpN expn2
+    e3t <- checkExpN expn3
+    when (e1t /= Number || e2t /= Number || e3t /= Number) $ throwError $ OurError lineNum $ "Las expresiones de un For con Salto deben ser de tipo number (Tipos encontrados ("++show e1t++","++show e2t++","++show e3t++"))"
+    newScope
+    addToSymTable (s, Number)
+    lastScopeToLog "for-by"
+    res <- checkInstrListN lin
+    removeScope
+    return res
+
+checkInstrN (IfThenN expn lin (lineNum,_)) = do
+    et <- checkExpN expn
+    when (et /= Boolean) $ throwError $ OurError lineNum $ "Se esperaba tipo boolean en condicion de if (tipo encontrado: "++show et++")"
+    --res <- checkInstrListN lin
+    --return $ Idk |*| res
+    ((|*|) Idk) <$> checkInstrListN lin
+
+checkInstrN (IfThenElseN expn lin1 lin2 (lineNum,_)) = do
+    et <- checkExpN expn
+    when (et /= Boolean) $ throwError $ OurError lineNum $ "Se esperaba tipo boolean en condicion de if (tipo encontrado: "++show et++")"
+    --res1 <- checkInstrListN lin1
+    --res2 <- checkInstrListN lin2
+    --return $ res1 |*| res2
+    (|*|) <$> checkInstrListN lin1 <*> checkInstrListN lin2
+
+checkInstrN (WhileN expn lin (lineNum,_)) = do
+    et <- checkExpN expn
+    when (et /= Boolean) $ throwError $ OurError lineNum $ "Se esperaba tipo boolean en condicion de while (tipo encontrado: "++show et++")"
+    ((|*|) Idk) <$> checkInstrListN lin
+
+{-
+checkInstrN (WriteN wordList) = do
+    checkWordListN wordList
+    return No
+
+checkInstrN (WriteLnN wordList) = do
+    checkWordListN wordList
+    return No -}
+
+checkInstrN (ReadN s (lineNum, _)) = do
+    found <- lookInSymTable s
+    when (found == Nothing) $ throwError $ OurError lineNum $ "Variable del read fuera de alcance"
+    return No
+
+checkInstrN (ReturnN expN (lineNum, _)) = do
+    rt <- getReturnType 
+    when (rt == Nothing) $ throwError $ OurError lineNum $ "No puede haber instrucciones de return fuera de una funcion."
+    when (rt == Just Void) $ throwError $ OurError lineNum $ "No puede haber instrucciones de return en una funcion de tipo void."
+    et <- checkExpN expN
+    when (fromJust rt /= et) $ throwError $ OurError lineNum $ "Return esperaba tipo "++show rt++"pero la expresion tiene tipo"++show et++"."
     return Yes
+
+checkInstrN (ExprN expN) = do
+    et <- checkExpN expN
+    when (et/=Void) $ warningToLog $ "Expresion con valor sin efecto en linea ?? ."
+    return No
 
 checkInstrN _ = return Yes
 

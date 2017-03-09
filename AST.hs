@@ -78,9 +78,9 @@ data InstrN =
     IfThenN ExpN InstrListN (Int,Int)                           |
     IfThenElseN ExpN InstrListN InstrListN (Int,Int)            |
     WhileN ExpN InstrListN (Int,Int)                            |
-    WriteN {listWriteN :: [WordN]}                              |
-    WritelnN {listWritelnN :: [WordN]}                          |
-    ReadN String                                                |
+    WriteN {listWriteN :: [WordN], posWriteN :: (Int, Int)}     |
+    WritelnN {listWritelnN :: [WordN], posWriteLnN::(Int, Int)} |
+    ReadN String (Int, Int)                                     |
     ReturnN ExpN (Int,Int)                                      |
     ExprN ExpN
     deriving Show
@@ -201,7 +201,7 @@ printParamListN n (LPN pl) = do
         printParam (exp, s) = do
             printTypeN (n+1) exp
             printId (n+1) s
-    
+
 
 printExpListN :: Int -> ExpListN -> IO()
 printExpListN n (LEN lv) = do
@@ -286,17 +286,17 @@ printInstrN n (WhileN exp exp1 _) = do
     printExpN (n+2) exp
     printInstrListN (n+1) exp1
 
-printInstrN n (WriteN l) = do
+printInstrN n (WriteN l _) = do
     putStrLnWithIdent n "Instruccion de salida:"
     putStrLnWithIdent (n+1) "Lista de expresiones:"
     mapM_ (printWordN (n+2)) l
     
-printInstrN n (WritelnN l) = do
+printInstrN n (WritelnN l _) = do
     putStrLnWithIdent n "Instruccion de salida con salto:"
     putStrLnWithIdent (n+1) "Lista de expresiones:"
     mapM_ (printWordN (n+2)) l
 
-printInstrN n (ReadN id) = do
+printInstrN n (ReadN id _) = do
     putStrLnWithIdent n "Instruccion de entrada:"
     printId (n+1) id
 

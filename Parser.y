@@ -30,9 +30,9 @@ import AST
     not             { NotTK $$ } --
     and             { AndTK $$ } --
     or              { OrTK $$ } --
-    read            { ReadTK _ }
-    write           { WriteTK _ }
-    writeln         { WritelnTK _ }
+    read            { ReadTK $$ }
+    write           { WriteTK $$ }
+    writeln         { WritelnTK $$ }
     if              { IfTK $$ } --
     then            { ThenTK _ }
     else            { ElseTK _ }
@@ -155,11 +155,11 @@ I   : with LD do LI end ';'                 { WithDoN $2 $4 $1 }
     | if E then LI end ';'                  { IfThenN $2 $4 $1 }
     | if E then LI else LI end ';'          { IfThenElseN $2 $4 $6 $1 }
     | while E do LI end ';'                 { WhileN $2 $4 $1}
-    | write string LPW                      { WriteN $ PWSN $2 : listLPWN $3 }
-    | write E LPW                           { WriteN $ PWEN $2 : listLPWN $3 }
-    | writeln string LPW                    { WritelnN $ PWSN $2 : listLPWN $3 }
-    | writeln E LPW                         { WritelnN $ PWEN $2 : listLPWN $3 }
-    | read id ';'                           { ReadN (tokenString $2) }
+    | write string LPW                      { WriteN (PWSN $2 : listLPWN $3) $1 }
+    | write E LPW                           { WriteN (PWEN $2 : listLPWN $3) $1 }
+    | writeln string LPW                    { WritelnN (PWSN $2 : listLPWN $3) $1 }
+    | writeln E LPW                         { WritelnN (PWEN $2 : listLPWN $3) $1 }
+    | read id ';'                           { ReadN (tokenString $2) $1 }
     | return E ';'                          { ReturnN $2 $1 }
     | E ';'                                 { ExprN $1 }
     

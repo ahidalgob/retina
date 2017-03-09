@@ -103,8 +103,11 @@ getTypeReturn s = state (\os -> let listFunc = getFuncSigns.getSymTable $ os
                                 in (getType.head $ func,os))
 
 
-setReturnT :: Maybe OurType -> OurMonad ()
-setReturnT typeR = state (\os -> ((),OurState (getSymTable os) (getNestedD os) typeR) )
+setReturnType :: Maybe OurType -> OurMonad ()
+setReturnType typeR = state (\os -> ((),OurState (getSymTable os) (getNestedD os) typeR) )
+
+getReturnType :: OurMonad (Maybe OurType)
+getReturnType = get >>= (return.getReturnT)
 
 lastScopeToLog :: String -> OurMonad ()
 lastScopeToLog scopeName = do
