@@ -73,8 +73,8 @@ newScope :: OurMonad ()
 newScope = state (\os -> let newScopes = (Scope []):(getScopes.getSymTable $ os)
                          in ((),OurState (SymTable newScopes (getFuncSigns $ getSymTable os)) ((getNestedD os)+1) (getReturnT os)))
 
-removeScope :: OurMonad ()
-removeScope = state (\os -> let scopes' = tail.getScopes.getSymTable $ os
+removeLastScope :: OurMonad ()
+removeLastScope = state (\os -> let scopes' = tail.getScopes.getSymTable $ os
                             in ((), OurState (SymTable scopes' (getFuncSigns $ getSymTable os)) ((getNestedD os)-1) (getReturnT os)))
 
 addToSymTable :: (String, OurType) -> OurMonad ()
@@ -98,10 +98,10 @@ lookFunction s = state (\os -> let funcsList = map (getId) (getFuncSigns.getSymT
                                in (ans,os))
 
 
-checkFunction :: String -> [OurType] -> OurMonad (Bool,Int)
+{-checkFunction :: String -> [OurType] -> OurMonad (Bool,Int)
 checkFunction s list = state (\os -> let listF = getParamList $ head $ filter ((==s).getId) (getFuncSigns.getSymTable $ os)
                                          listType = map snd listF
-                                     in ((listType==list,length listType),os))
+                                     in ((listType==list,length listType),os))-}
 
 getTypeReturn :: String -> OurMonad OurType
 getTypeReturn s = state (\os -> let listFunc = getFuncSigns.getSymTable $ os

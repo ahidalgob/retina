@@ -31,6 +31,9 @@ typeNConvert :: TypeN -> OurType
 typeNConvert BooleanN = Boolean
 typeNConvert NumberN = Number
 
+----------------------------------------------------------
+-- checkConstrN ------------------------------------------
+----------------------------------------------------------
 checkConstrN :: ConstrN -> OurMonad ()
 checkConstrN (PN ldfN instrListN) = do
     checkConstrN ldfN
@@ -40,8 +43,8 @@ checkConstrN (PN ldfN instrListN) = do
 checkConstrN (LDFN l) = do
     mapM_ checkFuncDefN l
 
--- el encargado de abrir y cerrar el scope (with) debe ser el que haga
--- newScope y removeScope
+-- el encargado de abrir y cerrar el scope (with) 
+-- debe ser el que haga newScope y removeLastScope y lastScopeToLog
 checkConstrN (LDN l) = do
     mapM_ proccessTypeAndList l 
     where 
@@ -55,24 +58,27 @@ checkConstrN (LDN l) = do
                     (VarN st) -> (st, Nothing)
                     (VarValN st e) -> (st, Just e)
             case me of
-                    (Just e) -> do
-                        te <- checkExpN e
-                        when (te /= t) $ throwError $ OurErrorNoPos ("Tipo de la variable \""++s++"\" y tipo de su valor no coinciden en su declaracion.")
-                    Nothing -> return ()
+                (Just e) -> do
+                    te <- checkExpN e
+                    when (te /= t) $ throwError $ OurErrorNoPos ("Tipo de la variable '"++s++"'('"++show t++"') y tipo de su valor a asignar('"++show te++"') no coinciden en su declaracion.")
+                Nothing -> return ()
             x <- lookInLastScope s
             case x of
-                    Nothing -> addToSymTable (s, t)
-                    (Just _) -> throwError $ OurErrorNoPos ("Variable \""++s++"\" definida dos veces en bloque with-do.")
+                Nothing -> addToSymTable (s, t)
+                (Just _) -> throwError $ OurErrorNoPos ("Variable '"++s++"' definida dos veces en el mismo bloque with-do.")
 
 
+----------------------------------------------------------
+-- checkFuncDefN -----------------------------------------
+----------------_-----------------------------------------
 checkFuncDefN :: FuncDefN -> OurMonad ()
 checkFuncDefN funcDefN = do
     let (funId, paramList, instrListN, lineNum, retType) = case funcDefN of
             DFN s p i (ln,_) -> (s,(map (\(x,y) -> (y, typeNConvert x))).listLPN $ p,i,ln, Void)
             RDFN s p ret i (ln,c) -> (s,(map (\(x,y) -> (y, typeNConvert x))).listLPN $ p,i,ln, typeNConvert ret)
-    
+
     repeated <- lookFunction funId
-    when (repeated) $ throwError $ OurError lineNum $ "Funcion "++funId++" redefinida."
+    when (repeated) $ throwError $ OurError lineNum $ "Funcion '"++funId++"' redefinida."
     addFunctionSign funId paramList retType
     setReturnType $ Just retType
 
@@ -83,28 +89,35 @@ checkFuncDefN funcDefN = do
     returned <- checkInstrListN instrListN
     when (retType /= Void) $ case returned of
         Yes -> return ()
-        Idk -> warningToLog $ "linea "++show lineNum++": Funcion "++funId++" puede no alcanzar un return."
-        No -> throwError $ OurError lineNum $ "Funcion "++funId++" no tiene instruccion de return."
-    removeScope
+        Idk -> warningToLog $ "linea "++show lineNum++": Funcion '"++funId++"' puede no alcanzar un return."
+        No -> throwError $ OurError lineNum $ "Funcion '"++funId++"' no tiene instruccion de return."
+    removeLastScope
     setReturnType Nothing
-    where adder funId lineNum (s, t) = do   x <- lookInLastScope s
-                                            case x of
-                                                Nothing -> addToSymTable (s, t)
-                                                (Just _) -> throwError $ OurError lineNum ("Variable \""++s++"\" definida dos veces en parametros de funcion "++funId++".")
+    where 
+        adder funId lineNum (s, t) = do
+            x <- lookInLastScope s
+            case x of
+                Nothing -> addToSymTable (s, t)
+                (Just _) -> throwError $ OurError lineNum ("Variable '"++s++"' definida dos veces en parametros de funcion '"++funId++"'.")
 
 
-
+----------------------------------------------------------
+-- checkInstrListN ---------------------------------------
+----------------_-----------------------------------------
 checkInstrListN :: InstrListN -> OurMonad Returned
 checkInstrListN (LIN instrList) = do
     (foldl (|+|) No) <$> (mapM checkInstrN instrList)
 
+----------------------------------------------------------
+-- checkInstrN -------------------------------------------
+----------------_-----------------------------------------
 checkInstrN :: InstrN -> OurMonad Returned
 checkInstrN (WithDoN ldn lin (lineNum,_)) = do
     newScope
     checkConstrN ldn `catchError` (reThrow lineNum)
-    lastScopeToLog "bloque with-do"
+    lastScopeToLog $ "bloque with-do (linea "++show lineNum++")"
     res <- checkInstrListN lin
-    removeScope
+    removeLastScope
     return res
     where
         reThrow :: Int -> OurError -> OurMonad ()
@@ -113,49 +126,47 @@ checkInstrN (WithDoN ldn lin (lineNum,_)) = do
 
 checkInstrN (RepeatN expn lin (lineNum,_)) = do
     et <- checkExpN expn
-    when (et /= Number) $ throwError $ OurError lineNum $ "La expresion de una instruccion repeat x times debe ser de tipo number. (Tipo encontrado: "++show et++")" 
+    when (et /= Number) $ throwError $ OurError lineNum $ "Instruccion repeat esperaba expresion de tipo 'number' (Tipo encontrado: '"++show et++"')." 
     checkInstrListN lin
 
 checkInstrN (AssignN s expn (lineNum,_)) = do
     found <- lookInSymTable s
     when (found == Nothing) $ throwError $ OurError lineNum $ "'"++s++"' no esta declarada en este alcance."
     et <- checkExpN expn 
-    when (et /= fromJust found) $ throwError $ OurError lineNum ("Se esperaba expresion de tipo "++show (fromJust found)++" en lado derecho de asignacion (Tipo encontrado: "++show et++")")
+    when (et /= fromJust found) $ throwError $ OurError lineNum ("Se esperaba expresion de tipo '"++show (fromJust found)++"' en lado derecho de asignacion (Tipo encontrado: '"++show et++"').")
     return No
 
 checkInstrN (ForN s expn1 expn2 lin (lineNum,_)) = do
     e1t <- checkExpN expn1
     e2t <- checkExpN expn2
-    when (e1t /= Number || e2t /= Number) $ throwError $ OurError lineNum $"Las expresiones de un For deben ser de tipo number (Tipos encontrados ("++show e1t++","++show e2t++"))"
+    when (e1t /= Number || e2t /= Number) $ throwError $ OurError lineNum $"Las expresiones de un for deben ser de tipo number (Tipos encontrados ('"++show e1t++"','"++show e2t++"'))."
     newScope
     addToSymTable (s, Number)
-    lastScopeToLog "for"
+    lastScopeToLog $ "for (linea "++show lineNum++")"
     res <- checkInstrListN lin
-    removeScope
+    removeLastScope
     return res
 
 checkInstrN (ForByN s expn1 expn2 expn3 lin (lineNum,_)) = do
     e1t <- checkExpN expn1
     e2t <- checkExpN expn2
     e3t <- checkExpN expn3
-    when (e1t /= Number || e2t /= Number || e3t /= Number) $ throwError $ OurError lineNum $ "Las expresiones de un For con Salto deben ser de tipo number (Tipos encontrados ("++show e1t++","++show e2t++","++show e3t++"))"
+    when (e1t /= Number || e2t /= Number || e3t /= Number) $ throwError $ OurError lineNum $ "Las expresiones de un for con salto deben ser de tipo 'number' (Tipos encontrados ('"++show e1t++"','"++show e2t++"','"++show e3t++"'))."
     newScope
     addToSymTable (s, Number)
-    lastScopeToLog "for-by"
+    lastScopeToLog $ "for-by (linea "++show lineNum++")"
     res <- checkInstrListN lin
-    removeScope
+    removeLastScope
     return res
 
 checkInstrN (IfThenN expn lin (lineNum,_)) = do
     et <- checkExpN expn
-    when (et /= Boolean) $ throwError $ OurError lineNum $ "Se esperaba tipo boolean en condicion de if (tipo encontrado: "++show et++")"
-    --res <- checkInstrListN lin
-    --return $ Idk |*| res
+    when (et /= Boolean) $ throwError $ OurError lineNum $ "Se esperaba tipo 'boolean' en condicion de if (Tipo encontrado: '"++show et++"')."
     ((|*|) Idk) <$> checkInstrListN lin
 
 checkInstrN (IfThenElseN expn lin1 lin2 (lineNum,_)) = do
     et <- checkExpN expn
-    when (et /= Boolean) $ throwError $ OurError lineNum $ "Se esperaba tipo boolean en condicion de if (tipo encontrado: "++show et++")"
+    when (et /= Boolean) $ throwError $ OurError lineNum $ "Se esperaba tipo 'boolean' en condicion de if-else (Tipo encontrado: '"++show et++"')."
     ret1 <- checkInstrListN lin1
     ret2 <- checkInstrListN lin2
     case (ret1, ret2) of
@@ -165,39 +176,40 @@ checkInstrN (IfThenElseN expn lin1 lin2 (lineNum,_)) = do
 
 checkInstrN (WhileN expn lin (lineNum,_)) = do
     et <- checkExpN expn
-    when (et /= Boolean) $ throwError $ OurError lineNum $ "Se esperaba tipo boolean en condicion de while (tipo encontrado: "++show et++")"
+    when (et /= Boolean) $ throwError $ OurError lineNum $ "Se esperaba tipo 'boolean' en condicion de while (Tipo encontrado: '"++show et++"')."
     ((|*|) Idk) <$> checkInstrListN lin
 
 checkInstrN (WriteN wordList (lineNum,_)) = do
-    checkWordListN wordList `catchError` (\(OurErrorNoPos s) -> throwError $ OurError lineNum $ s)
+    checkWordListN wordList `catchError` (\(OurErrorNoPos s) -> throwError $ OurError lineNum s)
     return No
 
 checkInstrN (WritelnN wordList (lineNum,_)) = do
-    checkWordListN wordList `catchError` (\(OurErrorNoPos s) -> throwError $ OurError lineNum $ s)
+    checkWordListN wordList `catchError` (\(OurErrorNoPos s) -> throwError $ OurError lineNum s)
     return No 
 
 checkInstrN (ReadN s (lineNum, _)) = do
     found <- lookInSymTable s
-    when (found == Nothing) $ throwError $ OurError lineNum $ "'"++s++"' variable del read esta fuera del alcance." 
+    when (found == Nothing) $ throwError $ OurError lineNum $ "'"++s++"' variable del read no esta declarada en este alcance." 
     return No
 
 checkInstrN (ReturnN expN (lineNum, _)) = do
     rt <- getReturnType 
     when (rt == Nothing) $ throwError $ OurError lineNum $ "No puede haber instrucciones de return fuera de una funcion."
-    when (rt == Just Void) $ throwError $ OurError lineNum $ "No puede haber instrucciones de return en una funcion de tipo void."
+    when (rt == Just Void) $ throwError $ OurError lineNum $ "No puede haber instrucciones de return en una funcion de tipo 'void'."
     et <- checkExpN expN
-    when (fromJust rt /= et) $ throwError $ OurError lineNum $ "La funcion esperaba un tipo de retorno "++show (fromJust rt)++" pero la expresion tiene tipo "++show et++"."
+    when (fromJust rt /= et) $ throwError $ OurError lineNum $ "La funcion esperaba un tipo de retorno '"++show (fromJust rt)++"' (Tipo encontrado '"++show et++"')."
     return Yes
 
 checkInstrN (ExprN expN) = do
     et <- checkExpN expN
-    when (et/=Void) $ warningToLog $ "Expresion con valor sin efecto en linea "++show (fst (getPos expN))++"."
+    when (et/=Void) $ warningToLog $ "linea "++show (fst (getPos expN))++": Expresion con valor sin efecto."
     return No
 
 
-
+----------------------------------------------------------
+-- checkExpN ---------------------------------------------
+----------------_-----------------------------------------
 checkExpN :: ExpN -> OurMonad OurType
-
 checkExpN (IdN s (lineNum,_)) = do
     bo <- lookInSymTable s
     when (bo==Nothing) $ throwError $ OurError lineNum $ "'"++s++"' no esta declarada en este alcance."
@@ -211,21 +223,20 @@ checkExpN (FalseN _) = do
 
 checkExpN (ParN exp (lineNum,_)) = do
     t <- checkExpN exp
-    when (t==Void) $ throwError $ OurError lineNum $ ("La expresion entre parentesis no puede ser de tipo void.")
+    when (t==Void) $ throwError $ OurError lineNum $ ("La expresion entre parentesis no puede ser de tipo 'void'.")
     return t
 
 checkExpN (ComparN exp s exp1 (lineNum,_)) = do
     t <- checkExpN exp
     t1 <- checkExpN exp1
-    when (t1==Void && t==Void) $ throwError $ OurError lineNum $ "Operandos invalidos de tipo 'void' y 'void' para el operador "++s++"." 
-    when (t1/=t) $ throwError $ OurError lineNum $ "Operandos del operador "++s++" no concuerdan '"++show t++"' y '"++show t1++"'." 
-    when ((s/="==" && s/="/=") && (t==Boolean || t1==Boolean))  $ throwError $ OurError lineNum $ "Operandos del operador "++s++" no acepta parametros de tipo boolean"  
+    when (t1==Void && t==Void) $ throwError $ OurError lineNum $ "Operandos invalidos de tipo 'void' y 'void' para el operador '"++s++"'." 
+    when (t1/=t) $ throwError $ OurError lineNum $ "Operandos del operador '"++s++"' no concuerdan en tipo: '"++show t++"' y '"++show t1++"'." 
+    when ((s/="==" && s/="/=") && (t==Boolean || t1==Boolean))  $ throwError $ OurError lineNum $ "Operandos del operador "++s++" no acepta parametros de tipo 'boolean'."  
     return Boolean
 
 checkExpN (NotN exp (lineNum,_)) = do
     t <- checkExpN exp
-    when (t==Void) $ throwError $ OurError lineNum $ "El operador not espera un 'boolean' y recibe un 'void' ." 
-    when (t/=Boolean) $ throwError $ OurError lineNum $ "El operador not espera un boolean y recibe un number." 
+    when (t/=Boolean) $ throwError $ OurError lineNum $ "El operador 'not' espera un 'boolean' y recibe un '"++show t++"'." 
     return t
 
 checkExpN (LogicN exp s exp1 (lineNum,_)) = do
@@ -235,39 +246,50 @@ checkExpN (LogicN exp s exp1 (lineNum,_)) = do
     return t
 
 checkExpN (FuncN s expList (lineNum,_)) = do
-    bo <-lookFunction s
-    when (not bo) $ throwError $ OurError lineNum $ "'"++s++"' no esta definida en este alcance."
+    defined <- lookFunction s
+    when (not defined) $ throwError $ OurError lineNum $ "'"++s++"' no esta definida en este alcance."
+    found <- lookInSymTable s
+    when (found /= Nothing) $ throwError $ OurError lineNum $ "Definicion de variable '"++s++"' en este alcance oculta la definicion de la funcion."
     newList <- mapM checkExpN (listLEN expList)
-    let bo1 = any (==Void) newList
-    when (bo1) $ throwError $ OurError lineNum $ "Uso invalido de expresiones void en los parametros de '"++s++"'."
-    (bo3,len) <- checkFunction s newList 
+    let anyVoid = any (==Void) newList
+    when (anyVoid) $ throwError $ OurError lineNum $ "Uso invalido de expresiones void en los parametros de '"++s++"'."
+    (goodArgs,len) <- checkFunction s newList 
     let len2 = length newList
-    when (not bo3 && len==len2) $ throwError $ OurError lineNum $ "Tipos de los parametros de la funcion "++s++" no concuerdan." 
-    when (not bo3 && len<len2) $ throwError $ OurError lineNum $ "Muchos argumentos para la funcion '"++s++"'."
-    when (not bo3 && len>len2) $ throwError $ OurError lineNum $ "Muy pocos argumentos para la funcion '"++s++"'."  
+    when (not goodArgs && len==len2) $ throwError $ OurError lineNum $ "Tipos de los parametros de la funcion "++s++" no concuerdan." 
+    when (not goodArgs && len<len2) $ throwError $ OurError lineNum $ "Muchos argumentos para la funcion '"++s++"' (Esperados: "++show len++", Recibidos: "++show len2++")."
+    when (not goodArgs && len>len2) $ throwError $ OurError lineNum $ "Muy pocos argumentos para la funcion '"++s++"' (Esperados: "++show len++", Recibidos: "++show len2++")."
     getTypeReturn s
+    where
+        checkFunction :: String -> [OurType] -> OurMonad (Bool,Int)
+        checkFunction s list = do
+            os <- get
+            let listF = getParamList $ head $ filter ((==s).getId) (getFuncSigns.getSymTable $ os)
+                listType = map snd listF
+            return (listType==list,length listType)
+    {-    checkFunction s list = state (\os-> let listF = getParamList $ head $ filter ((==s).getId) (getFuncSigns.getSymTable $ os)
+                                                listType = map snd listF
+                                            in ((listType==list,length listType),os)) -}
 
 checkExpN (MinusN exp (lineNum,_)) = do
     t <- checkExpN exp
-    when (t/=Number) $ throwError $ OurError lineNum $ "El operador '-' espera un Number y recibe un "++(show t)++"." 
+    when (t/=Number) $ throwError $ OurError lineNum $ "El operador '-' espera un 'number' y recibe un '"++(show t)++"'." 
     return t
 
 checkExpN (AritN exp s exp1 (lineNum,_)) = do
     t <- checkExpN exp
     t1 <- checkExpN exp1
-    when (t/=Number || t1/=Number) $ throwError $ OurError lineNum $ "El operador "++s++" espera un (number,number) y recibe un ("++show t++","++show t1++")."
+    when (t/=Number || t1/=Number) $ throwError $ OurError lineNum $ "El operador '"++s++"' espera ('number', 'number') y recibe ('"++show t++"','"++show t1++"')."
     return t
 
 checkExpN (NumberLiteralN s _) = do
     return Number
 
 checkWordListN :: [WordN] -> OurMonad ()
-
 checkWordListN (wordList) = do
-    mapM_ fun wordList
-    where fun (PWEN exp) = do
+    mapM_ checkWord wordList
+    where checkWord (PWEN exp) = do
             t <- checkExpN exp
             case t of 
-                Void -> throwError $ OurErrorNoPos ("La expresion a mostrar en pantalla no evalua a nada.")
+                Void -> throwError $ OurErrorNoPos ("La expresion a mostrar en pantalla no puede ser de tipo 'void'.")
                 _ -> return ()    
-          fun _ = return ()
+          checkWord _ = return ()

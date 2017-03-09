@@ -6,6 +6,18 @@
 module AST where
 import Control.Monad
 
+
+data ConstrN = 
+    PN ConstrN InstrListN                           |
+    LDFN {listLDFN :: [FuncDefN]}                   |
+    LDN {listLDN :: [(TypeN, [VarN])]}
+    deriving Show
+    
+data TypeN =
+    BooleanN                                        |
+    NumberN
+    deriving Show
+
 data ExpN =
     IdN { getString::String, getPos::(Int, Int) }                                   |
     TrueN { getPos::(Int, Int) }                                                    |   
@@ -18,17 +30,6 @@ data ExpN =
     MinusN { getExp::ExpN, getPos::(Int, Int) }                                     |
     AritN { getExp::ExpN, getString::String, getExp1::ExpN, getPos::(Int, Int) }    |
     NumberLiteralN  { getString::String, getPos::(Int, Int) }
-    deriving Show
-
-data TypeN =
-    BooleanN                                        |
-    NumberN
-    deriving Show
-
-data ConstrN = 
-    PN ConstrN InstrListN                           |
-    LDFN {listLDFN :: [FuncDefN]}                   |
-    LDN {listLDN :: [(TypeN, [VarN])]}
     deriving Show
 
 data FuncDefN =
