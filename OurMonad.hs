@@ -7,7 +7,7 @@ import Control.Monad
 import Data.Monoid
 import Data.Either
 
-data OurError = OurError Int String | OurErrorNoPos String deriving Show
+data OurError = OurError Int String | OurErrorNoPos String
 instance Error OurError
 
 data OurType = Number | Boolean deriving (Eq, Show)
@@ -30,7 +30,7 @@ instance Monoid OurLog where
 
 instance Show OurLog where
   show (OurLog a "") = "Alcances:\n"++a++"\n"
-  show (OurLog a b) = "Alcances:\n"++a++"\n"++"Advertencias:"++b
+  show (OurLog a b) = "Alcances:\n"++a++"\n"++"Advertencias:\n"++b
 
 scopeToOurLog s = OurLog s ""
 warningToOurLog s = OurLog "" s
@@ -41,7 +41,7 @@ type OurMonad a = StateT OurState (WriterT OurLog (Either OurError)) a
 runOurMonad :: OurMonad a -> OurState -> Either OurError ((a, OurState), OurLog)
 runOurMonad f a = runWriterT (runStateT f a)
 
-getLog f a = show $ snd $ getRight $ runOurMonad f a --`catchError` (\e -> return $ (((), emptyState), e))
+getLog f a = show $ snd $ getRight $ runOurMonad f a `catchError` (\(OurError pos s) -> error $ "Error en linea: "++show pos++", "++s)
     where
         getRight (Right x) = x
 

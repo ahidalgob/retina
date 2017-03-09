@@ -15,7 +15,6 @@ typeNConvert NumberN = Number
 
 checkConstrN :: ConstrN -> OurMonad ()
 checkConstrN (PN ldfN instrListN) = do
-    warningToLog "Advertencia de prueba"
     checkConstrN ldfN
     checkInstrListN instrListN
     return ()
@@ -48,7 +47,7 @@ checkConstrN (LDFN (funcDefN:rest)) = do
     where adder funId lineNum (s, t) = do   x <- lookInLastScope s
                                             case x of
                                                 Nothing -> addToSymTable (s, t)
-                                                (Just _) -> throwError $ OurError lineNum ("Variable "++s++" definida dos veces en parametros de funcion "++funId++".")
+                                                (Just _) -> throwError $ OurError lineNum ("Variable \""++s++"\" definida dos veces en parametros de funcion "++funId++".")
 
 
 -- el encargado de abrir y cerrar el scope (with) debe ser el que haga
@@ -68,11 +67,12 @@ checkConstrN (LDN ((tN,varNList):rest)) = do
             x <- lookInLastScope s
             case x of
                     Nothing -> addToSymTable (s, t)
-                    (Just _) -> throwError $ OurErrorNoPos ("Variable "++s++" definida dos veces en bloque with-do.")
+                    (Just _) -> throwError $ OurErrorNoPos ("Variable \""++s++"\" definida dos veces en bloque with-do.")
             case me of
                     (Just e) -> do
                         te <- checkExpN e
-                        when (te /= Just t) $ throwError $ OurErrorNoPos ("Tipo de la variable "++s++" y tipo de su valor no coinciden en su declaracion.")
+                        when (te /= Just t) $ throwError $ OurErrorNoPos ("Tipo de la variable \""++s++"\" y tipo de su valor no coinciden en su declaracion.")
+
 
 
 checkInstrListN :: InstrListN -> OurMonad Bool
