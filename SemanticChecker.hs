@@ -112,6 +112,13 @@ checkInstrN (RepeatN expn lin (lineNum,_)) = do
     when (et /= Number) $ throwError $ OurError lineNum $ "La expresion de una instruccion repeat x times debe ser de tipo number. (Tipo encontrado: "++show et++")" 
     checkInstrListN lin
 
+checkInstrN (AssignN s expn (lineNum,_)) = do
+    found <- lookInSymTable s
+    when (found == Nothing) $ throwError $ OurError lineNum $ "'"++s++"' no esta declarada en este alcance."
+    et <- checkExpN expn 
+    when (et /= fromJust found) $ throwError $ OurError lineNum ("Se esperaba expresion de tipo "++show (fromJust found)++" en lado derecho de asignacion (Tipo encontrado: "++show et++")")
+    return No
+
 checkInstrN (ForN s expn1 expn2 lin (lineNum,_)) = do
     e1t <- checkExpN expn1
     e2t <- checkExpN expn2
@@ -183,7 +190,7 @@ checkInstrN (ExprN expN) = do
     when (et/=Void) $ warningToLog $ "Expresion con valor sin efecto en linea ?? ."
     return No
 
-checkInstrN _ = return Yes
+
 
 checkExpN :: ExpN -> OurMonad OurType
 

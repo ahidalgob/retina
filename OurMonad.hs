@@ -10,7 +10,13 @@ import Data.Either
 data OurError = OurError Int String | OurErrorNoPos String
 instance Error OurError
 
-data OurType = Number | Boolean | Void deriving (Eq, Show)
+data OurType = Number | Boolean | Void deriving Eq
+
+instance Show OurType where
+  show Number = "number"
+  show Boolean = "boolean"
+  show Void = "void"
+
 
 data Scope = Scope {getList::[(String, OurType)]}
 
@@ -113,9 +119,10 @@ lastScopeToLog :: String -> OurMonad ()
 lastScopeToLog scopeName = do
     nested <- getNestedDegree 
     OurState (SymTable (sc:_) _) _ _ <- get
-    tell.scopeToOurLog $ (replicate (4*nested) ' ')++"Alcance "++scopeName++"\n"
-    tell.scopeToOurLog $ concatMap (\s -> (replicate (4*nested+2) ' ')++s++"\n" ) $ map show $ reverse.getList $ sc
-
+    let ident = concat (replicate nested "|   ")
+    tell.scopeToOurLog $ ident++"Alcance "++scopeName++":\n"
+    tell.scopeToOurLog $ concatMap (\s -> ident++"> "++s++"\n" ) $ map showVarAndType $ reverse.getList $ sc
+    where showVarAndType (s, t) = s ++" : "++ show t
 warningToLog :: String -> OurMonad ()
 warningToLog warning = do
     tell.warningToOurLog $ warning++"\n"
