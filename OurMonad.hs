@@ -78,9 +78,13 @@ newScope = do
     put $ oldState {getSymTable = newSymTable, getNestedD = oldNestedD + 1}
 
 removeLastScope :: OurMonad ()
-removeLastScope = state (\os -> let scopes' = tail.getScopes.getSymTable $ os
-                            in ((), OurState (SymTable scopes' (getFuncSigns $ getSymTable os)) ((getNestedD os)-1) (getReturnT os)))
-
+removeLastScope = do
+        oldState <- get
+        let oldSymTable = getSymTable oldState
+            oldNestedD = getNestedD oldState
+            newSymTable = oldSymTable {getScopes = tail.getScopes $ oldSymTable }
+        put $ oldState { getSymTable = newSymTable, getNestedD = oldNestedD -1}
+        
 addToSymTable :: (String, OurType) -> OurMonad ()
 addToSymTable pair = state (\os -> let scopes' = getScopes.getSymTable $ os
                                        newScope = Scope $ pair:(getList $ head scopes')
