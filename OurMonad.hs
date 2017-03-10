@@ -115,6 +115,12 @@ getFunctionReturnType s = do
         func = filter ((==s).getId) listFunc 
     return $ getType.head $ func
 
+checkFunction :: String -> [OurType] -> OurMonad (Bool,Int)
+checkFunction s list = do
+    os <- get
+    let listF = getParamList $ head $ filter ((==s).getId) (getFuncSigns.getSymTable $ os)
+        listType = map snd listF
+    return (listType==list,length listType)
 
 setReturnType :: Maybe OurType -> OurMonad ()
 setReturnType typeR = do 

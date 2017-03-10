@@ -268,13 +268,6 @@ checkExpN (FuncN s expList (lineNum,_)) = do
     when (not goodArgs && len<len2) $ throwError $ OurError lineNum $ "Muchos argumentos para la funcion '"++s++"' (Esperados: "++show len++", Recibidos: "++show len2++")."
     when (not goodArgs && len>len2) $ throwError $ OurError lineNum $ "Muy pocos argumentos para la funcion '"++s++"' (Esperados: "++show len++", Recibidos: "++show len2++")."
     getFunctionReturnType s
-    where
-        checkFunction :: String -> [OurType] -> OurMonad (Bool,Int)
-        checkFunction s list = do
-            os <- get
-            let listF = getParamList $ head $ filter ((==s).getId) (getFuncSigns.getSymTable $ os)
-                listType = map snd listF
-            return (listType==list,length listType)
 
 checkExpN (MinusN exp (lineNum,_)) = do
     t <- checkExpN exp
