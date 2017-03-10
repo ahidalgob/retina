@@ -26,9 +26,9 @@ data FuncSign = FuncSign {getId::String, getType:: OurType, getParamList::[(Stri
 
 data SymTable = SymTable {getScopes::[Scope], getFuncSigns::[FuncSign]}
 
-data OurState = OurState {getSymTable::SymTable, getNestedD::Int, getReturnT::(Maybe OurType)}
+data OurState = OurState {getSymTable::SymTable, getReturnT::(Maybe OurType)}
 
-emptyState = OurState (SymTable [] []) (0) Nothing
+emptyState = OurState (SymTable [] []) Nothing
 
 data OurLog = OurLog {getScopesLog::String, getWarningsLog::String}
 
@@ -54,9 +54,6 @@ getLog f a = show $ snd $ getRight $ runOurMonad f a `catchError` (\(OurError po
         getRight (Right x) = x
 
 
-getNestedDegree :: OurMonad Int
-getNestedDegree = getNestedD <$> get
-
 lookInList :: String -> [(String, OurType)] -> Maybe OurType
 lookInList s l = snd <$> find ((==s).fst) l
 
@@ -73,53 +70,64 @@ newScope = do
     oldState <- get
     let oldSymTable = getSymTable oldState
         oldScopes = getScopes oldSymTable
-        oldNestedD = getNestedD oldState
         newSymTable = oldSymTable {getScopes = (Scope []):oldScopes}
-    put $ oldState {getSymTable = newSymTable, getNestedD = oldNestedD + 1}
+    put $ oldState {getSymTable = newSymTable}
 
 removeLastScope :: OurMonad ()
 removeLastScope = do
-        oldState <- get
-        let oldSymTable = getSymTable oldState
-            oldNestedD = getNestedD oldState
-            newSymTable = oldSymTable {getScopes = tail.getScopes $ oldSymTable }
-        put $ oldState { getSymTable = newSymTable, getNestedD = oldNestedD -1}
+    oldState <- get
+    let oldSymTable = getSymTable oldState
+        newSymTable = oldSymTable {getScopes = tail.getScopes $ oldSymTable }
+    put $ oldState { getSymTable = newSymTable}
         
 addToSymTable :: (String, OurType) -> OurMonad ()
-addToSymTable pair = state (\os -> let scopes' = getScopes.getSymTable $ os
-                                       newScope = Scope $ pair:(getList $ head scopes')
-                                       newScopeList = newScope:(tail scopes')
-                                   in ((), OurState (SymTable newScopeList (getFuncSigns $ getSymTable os)) (getNestedD os) (getReturnT os)))
+addToSymTable pair = do
+    os <- get
+    let oldSymTable = getSymTable os
+        oldScopeList = getScopes oldSymTable
+        newLastScope = Scope $ pair:(getList $ head oldScopeList)
+        newScopeList = newLastScope:(tail oldScopeList)
+        newSymTable = oldSymTable { getScopes = newScopeList }
+    put $ os { getSymTable = newSymTable }
 
 addFunctionSign :: String -> [(String, OurType)] -> OurType -> OurMonad () -- No crea el scope
-addFunctionSign s params typ = state (\os -> let newFunc = FuncSign s typ params
-                                                 newSymTable = SymTable (getScopes.getSymTable $ os) (newFunc:(getFuncSigns.getSymTable $ os))
-                                             in ((),OurState newSymTable (getNestedD os) (getReturnT os))) 
+addFunctionSign s params typ = do 
+    os <- get
+    let newFunc = FuncSign s typ params
+        oldSymTable = getSymTable os
+        newSymTable = oldSymTable { getFuncSigns = newFunc:(getFuncSigns oldSymTable) }
+    put $ os { getSymTable = newSymTable }
 
 lookFunction :: String -> OurMonad Bool
-lookFunction s = state (\os -> let funcsList = map (getId) (getFuncSigns.getSymTable $ os)
-                                   xs = filter (==s) funcsList
-                                   ans = case xs of 
-                                            [] -> False
-                                            _ -> True
-                               in (ans,os))
+lookFunction s = do
+    os <- get  
+    let funcsList = map (getId) (getFuncSigns.getSymTable $ os)
+        xs = filter (==s) funcsList
+        ans = case xs of 
+            [] -> False
+            _ -> True
+    return ans
 
 getFunctionReturnType :: String -> OurMonad OurType
-getFunctionReturnType s = state (\os -> let listFunc = getFuncSigns.getSymTable $ os
-                                            func = filter ((==s).getId) listFunc 
-                                        in (getType.head $ func,os))
+getFunctionReturnType s = do
+    os <- get
+    let listFunc = getFuncSigns.getSymTable $ os
+        func = filter ((==s).getId) listFunc 
+    return $ getType.head $ func
 
 
 setReturnType :: Maybe OurType -> OurMonad ()
-setReturnType typeR = state (\os -> ((),OurState (getSymTable os) (getNestedD os) typeR) )
+setReturnType typeR = do 
+    os <- get
+    put $ os { getReturnT = typeR }
 
 getReturnType :: OurMonad (Maybe OurType)
 getReturnType = get >>= (return.getReturnT)
 
 lastScopeToLog :: String -> OurMonad ()
 lastScopeToLog scopeName = do
-    nested <- getNestedDegree 
-    OurState (SymTable (sc:_) _) _ _ <- get
+    nested <- (length.getScopes.getSymTable) <$> get
+    sc <- head.getScopes.getSymTable <$> get
     let ident = concat (replicate nested "|   ")
     tell.scopeToOurLog $ ident++"Alcance "++scopeName++":\n"
     tell.scopeToOurLog $ concatMap (\s -> ident++"> "++s++"\n" ) $ map showVarAndType $ reverse.getList $ sc

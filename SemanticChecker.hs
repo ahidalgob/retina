@@ -79,7 +79,7 @@ checkConstrN (LDN l) = do
 
 ----------------------------------------------------------
 -- checkFuncDefN -----------------------------------------
-----------------_-----------------------------------------
+----------------------------------------------------------
 checkFuncDefN :: FuncDefN -> OurMonad ()
 checkFuncDefN funcDefN = do
     let (funId, paramList, instrListN, lineNum, retType) = case funcDefN of
@@ -112,14 +112,14 @@ checkFuncDefN funcDefN = do
 
 ----------------------------------------------------------
 -- checkInstrListN ---------------------------------------
-----------------_-----------------------------------------
+----------------------------------------------------------
 checkInstrListN :: InstrListN -> OurMonad Returned
 checkInstrListN (LIN instrList) = do
     (foldl (|+|) No) <$> (mapM checkInstrN instrList)
 
 ----------------------------------------------------------
 -- checkInstrN -------------------------------------------
-----------------_-----------------------------------------
+----------------------------------------------------------
 checkInstrN :: InstrN -> OurMonad Returned
 checkInstrN (WithDoN ldn lin (lineNum,_)) = do
     newScope
@@ -217,7 +217,7 @@ checkInstrN (ExprN expN) = do
 
 ----------------------------------------------------------
 -- checkExpN ---------------------------------------------
-----------------_-----------------------------------------
+----------------------------------------------------------
 checkExpN :: ExpN -> OurMonad OurType
 checkExpN (IdN s (lineNum,_)) = do
     bo <- lookInSymTable s
@@ -290,6 +290,9 @@ checkExpN (AritN exp s exp1 (lineNum,_)) = do
 checkExpN (NumberLiteralN s _) = do
     return Number
 
+----------------------------------------------------------
+-- checkWordListN ----------------------------------------
+----------------------------------------------------------
 checkWordListN :: [WordN] -> OurMonad ()
 checkWordListN (wordList) = do
     mapM_ checkWord wordList
