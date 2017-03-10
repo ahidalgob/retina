@@ -258,7 +258,7 @@ checkExpN (FuncN s expList (lineNum,_)) = do
     defined <- lookFunction s
     when (not defined) $ throwError $ OurError lineNum $ "'"++s++"' no esta definida en este alcance."
     found <- lookInSymTable s
-    when (found /= Nothing) $ throwError $ OurError lineNum $ "Definicion de variable '"++s++"' en este alcance oculta la definicion de la funcion."
+    when (found /= Nothing) $ throwError $ OurError lineNum $ "Definicion de variable '"++s++"' de tipo "++(show $ fromJust found)++" en este alcance oculta la definicion de la funcion '"++s++"'."
     newList <- mapM checkExpN (listLEN expList)
     let anyVoid = any (==Void) newList
     when (anyVoid) $ throwError $ OurError lineNum $ "Uso invalido de expresiones void en los parametros de '"++s++"'."
