@@ -36,6 +36,15 @@ typeNConvert NumberN = Number
 ----------------------------------------------------------
 checkConstrN :: ConstrN -> OurMonad ()
 checkConstrN (PN ldfN instrListN) = do
+    addFunctionSign "home" [] Void
+    addFunctionSign "openeye" [] Void
+    addFunctionSign "closeeye" [] Void
+    addFunctionSign "forward" [("number",Number)] Void
+    addFunctionSign "backward" [("number",Number)] Void  
+    addFunctionSign "rotatel" [("number",Number)] Void
+    addFunctionSign "rotater" [("number",Number)] Void
+    addFunctionSign "setposition" [("x",Number),("y",Number)] Void
+    addFunctionSign "arc" [("x",Number),("y",Number)] Void
     checkConstrN ldfN
     checkInstrListN instrListN
     return ()
