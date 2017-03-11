@@ -256,8 +256,9 @@ checkExpN (LogicN exp s exp1 (lineNum,_)) = do
 
 checkExpN (FuncN s expList (lineNum,_)) = do
     defined <- lookFunction s
-    when (not defined) $ throwError $ OurError lineNum $ "'"++s++"' no esta definida en este alcance."
     found <- lookInSymTable s
+    when (not defined && (found == Nothing)) $ throwError $ OurError lineNum $ "'"++s++"' no esta definida en este alcance."
+    when (not defined && (found /= Nothing)) $ throwError $ OurError lineNum $ "Variable '"++s++"' no puede ser usada como funcion."
     when (found /= Nothing) $ throwError $ OurError lineNum $ "Definicion de variable '"++s++"' de tipo "++(show $ fromJust found)++" en este alcance oculta la definicion de la funcion '"++s++"'."
     newList <- mapM checkExpN (listLEN expList)
     let anyVoid = any (==Void) newList
