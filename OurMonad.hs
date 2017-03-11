@@ -136,7 +136,7 @@ lastScopeToLog scopeName = do
     sc <- head.getScopes.getSymTable <$> get
     let ident = concat (replicate nested "|   ")
     tell.scopeToOurLog $ ident++"Alcance "++scopeName++":\n"
-    tell.scopeToOurLog $ concatMap (\s -> ident++"> "++s++"\n" ) $ map showVarAndType $ reverse.getList $ sc
+    tell.scopeToOurLog $ concatMap (\s -> ident++"|> "++s++"\n" ) $ map showVarAndType $ reverse.getList $ sc
     where showVarAndType (s, t) = s ++" : "++ show t
 warningToLog :: String -> OurMonad ()
 warningToLog warning = do
