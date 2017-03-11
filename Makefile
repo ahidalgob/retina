@@ -13,7 +13,6 @@ OurMonad: OurMonad.hs
 SemanticChecker: SemanticChecker.hs
 	ghc --make -w SemanticChecker.hs
 
-
 AST: AST.hs
 	ghc --make -w AST.hs
 

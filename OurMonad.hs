@@ -82,26 +82,26 @@ removeLastScope = do
         
 addToSymTable :: (String, OurType) -> OurMonad ()
 addToSymTable pair = do
-    os <- get
-    let oldSymTable = getSymTable os
+    oldState <- get
+    let oldSymTable = getSymTable oldState
         oldScopeList = getScopes oldSymTable
         newLastScope = Scope $ pair:(getList $ head oldScopeList)
         newScopeList = newLastScope:(tail oldScopeList)
         newSymTable = oldSymTable { getScopes = newScopeList }
-    put $ os { getSymTable = newSymTable }
+    put $ oldState { getSymTable = newSymTable }
 
 addFunctionSign :: String -> [(String, OurType)] -> OurType -> OurMonad () -- No crea el scope
 addFunctionSign s params typ = do 
-    os <- get
+    oldState <- get
     let newFunc = FuncSign s typ params
-        oldSymTable = getSymTable os
+        oldSymTable = getSymTable oldState
         newSymTable = oldSymTable { getFuncSigns = newFunc:(getFuncSigns oldSymTable) }
-    put $ os { getSymTable = newSymTable }
+    put $ oldState { getSymTable = newSymTable }
 
 lookFunction :: String -> OurMonad Bool
 lookFunction s = do
-    os <- get  
-    let funcsList = map (getId) (getFuncSigns.getSymTable $ os)
+    oldState <- get  
+    let funcsList = map (getId) (getFuncSigns.getSymTable $ oldState)
         xs = filter (==s) funcsList
         ans = case xs of 
             [] -> False
@@ -110,34 +110,36 @@ lookFunction s = do
 
 getFunctionReturnType :: String -> OurMonad OurType
 getFunctionReturnType s = do
-    os <- get
-    let listFunc = getFuncSigns.getSymTable $ os
+    oldState <- get
+    let listFunc = getFuncSigns.getSymTable $ oldState
         func = filter ((==s).getId) listFunc 
     return $ getType.head $ func
 
 checkFunction :: String -> [OurType] -> OurMonad (Bool,Int)
 checkFunction s list = do
-    os <- get
-    let listF = getParamList $ head $ filter ((==s).getId) (getFuncSigns.getSymTable $ os)
+    oldState <- get
+    let listF = getParamList $ head $ filter ((==s).getId) (getFuncSigns.getSymTable $ oldState)
         listType = map snd listF
     return (listType==list,length listType)
 
 setReturnType :: Maybe OurType -> OurMonad ()
 setReturnType typeR = do 
-    os <- get
-    put $ os { getReturnT = typeR }
+    oldState <- get
+    put $ oldState { getReturnT = typeR }
 
 getReturnType :: OurMonad (Maybe OurType)
 getReturnType = get >>= (return.getReturnT)
 
 lastScopeToLog :: String -> OurMonad ()
 lastScopeToLog scopeName = do
-    nested <- (length.getScopes.getSymTable) <$> get
-    sc <- head.getScopes.getSymTable <$> get
-    let ident = concat (replicate nested "|   ")
+    scopes <- getScopes.getSymTable <$> get
+    let nested = length scopes
+        lastScope = head scopes
+        ident = concat (replicate nested "|   ")
     tell.scopeToOurLog $ ident++"Alcance "++scopeName++":\n"
-    tell.scopeToOurLog $ concatMap (\s -> ident++"|> "++s++"\n" ) $ map showVarAndType $ reverse.getList $ sc
-    where showVarAndType (s, t) = s ++" : "++ show t
+    tell.scopeToOurLog $ concatMap (\s -> ident++"|> "++s++"\n" ) $ map showVarAndType $ reverse.getList $ lastScope
+    where
+        showVarAndType (s, t) = s ++" : "++ show t
 warningToLog :: String -> OurMonad ()
 warningToLog warning = do
     tell.warningToOurLog $ warning++"\n"

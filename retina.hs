@@ -18,8 +18,8 @@ main = do
                         putStrLn "Error lexicografico (alex isn't happy)"
                         mapM_ printToken $ reverse $ tokenList ls
                     else do
-                        --mapM_ printToken $ reverse $ tokenList ls
-                        --printConstrN 0 . (P.parse) . reverse . tokenList $ ls
+                        --Imprimir AST
+                        --printConstrN 0 . (P.parse) . reverse . tokenList $ ls 
                         putStrLn $ getLog (checkConstrN $ (P.parse) . reverse . tokenList $ ls) emptyState
                         
         Left e -> putStrLn e
