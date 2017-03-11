@@ -1,5 +1,5 @@
 -- Retina - Proyecto de Traductores
--- Lexer
+-- Programa Principal
 -- Augusto Hidalgo 13-10665
 -- Genesis Kufatty 13-10708
 

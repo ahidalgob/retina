@@ -1,3 +1,8 @@
+-- Retina - Proyecto de Traductores
+-- Analizador de Semantica
+-- Augusto Hidalgo 13-10665
+-- Genesis Kufatty 13-10708
+
 module SemanticChecker where
 import AST
 import OurMonad

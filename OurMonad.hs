@@ -1,3 +1,8 @@
+-- Retina - Proyecto de Traductores
+-- OurMonad, Monad para realizar el analisis de contexto y sus funciones respectivas.
+-- Augusto Hidalgo 13-10665
+-- Genesis Kufatty 13-10708
+
 module OurMonad where
 
 import Control.Monad.Error
