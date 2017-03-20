@@ -1,0 +1,9 @@
+program
+    with
+        number contador = 4;
+    do
+        if 5 + contador then
+
+        end;
+    end;
+end;

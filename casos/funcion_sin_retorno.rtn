@@ -1,0 +1,8 @@
+func meh()
+begin
+    return 23;
+end;
+
+program
+    write meh();
+end;

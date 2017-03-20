@@ -1,0 +1,14 @@
+program
+    with
+        number i;
+        number n = 10;
+    do
+        with
+            number j = i;
+        do
+            for k from j to n do
+                writeln i, j, k;
+            end;
+        end;
+    end;
+end;

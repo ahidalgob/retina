@@ -1,0 +1,8 @@
+func bar(number i) -> number
+begin
+    return i < 0;
+end;
+
+program
+    writeln bar(3);
+end;

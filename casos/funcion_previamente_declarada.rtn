@@ -1,0 +1,18 @@
+func add(number x, number y) -> number
+begin
+    return x + y;
+end;
+
+func add(number x) -> number
+begin
+    with
+        number result;
+    do
+        result = x + x;
+        return result;
+    end;
+end;
+
+program
+    writeln 0;
+end;

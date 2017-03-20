@@ -1,0 +1,13 @@
+program
+    with
+        number x;
+    do
+        x = x;
+        with
+            number x = 37;
+            boolean x;
+        do
+            x = true;
+        end;
+    end;
+end;

@@ -1,0 +1,17 @@
+func max(number x, number y) -> number
+begin
+    if x < y then
+        return y;
+    end;
+    return x;
+end;
+
+program
+    with do end;
+    with
+        number x = 37;
+    do
+        x = true;
+        writeln "El mayor es: ", max(9,x);
+    end;
+end;

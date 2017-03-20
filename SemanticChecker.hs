@@ -194,11 +194,16 @@ checkInstrN (WhileN expn lin (lineNum,_)) = do
     ((|*|) Idk) <$> checkInstrListN lin
 
 checkInstrN (WriteN wordList (lineNum,_)) = do
-    checkWordListN wordList `catchError` (\(OurErrorNoPos s) -> throwError $ OurError lineNum s)
+    checkWordListN wordList `catchError`  (\ourerror-> case ourerror of
+                                                            (OurErrorNoPos s) -> throwError $ OurError lineNum s
+                                                            _ -> throwError $ ourerror)
+
     return No
 
 checkInstrN (WritelnN wordList (lineNum,_)) = do
-    checkWordListN wordList `catchError` (\(OurErrorNoPos s) -> throwError $ OurError lineNum s)
+    checkWordListN wordList `catchError` (\ourerror-> case ourerror of
+                                                            (OurErrorNoPos s) -> throwError $ OurError lineNum s
+                                                            _ -> throwError $ ourerror)
     return No 
 
 checkInstrN (ReadN s (lineNum, _)) = do

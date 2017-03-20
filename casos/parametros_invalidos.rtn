@@ -1,0 +1,8 @@
+func foo(number i) -> number
+begin
+    return i;
+end;
+
+program
+    writeln foo(3,4);
+end;

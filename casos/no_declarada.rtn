@@ -1,0 +1,14 @@
+func incremental_forward(number steps)
+begin
+    for i from 1 to steps do
+        forward(i);
+    end;
+end;
+
+program
+    writeln "The value of 'i' is:", i;
+    for i from 1 to 360 do
+        incremental_forward(i);
+        rotater(15);
+    end;
+end;

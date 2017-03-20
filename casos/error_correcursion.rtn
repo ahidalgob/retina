@@ -1,0 +1,29 @@
+func even(number i) -> boolean
+begin
+    if i < 0 then
+        return false;
+    end;
+ 
+    if i == 0 then
+        return true;
+    end;
+ 
+    return odd(i-1);
+end;
+
+func odd(number i) -> boolean
+begin
+    if i < 0 then
+        return false;
+    end;
+ 
+    if i == 1 then
+        return true;
+    end;
+ 
+    return even(i-1);
+end;
+
+program
+    writeln even(3);
+end;
