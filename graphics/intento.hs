@@ -28,14 +28,7 @@ readPixelArray x y w h = do
         readPixels position size $ PixelData RGBA UnsignedByte ptr
         peekArray arraySize ptr
 
-myinit :: IO ()
-myinit = do
-    drawBuffer $= FrontAndBackBuffers
-    rowAlignment Unpack $= 1
-    --viewport $= (Position 0 0, Size myWidth myHeight) ------------------------------
-    matrixMode $= Projection
-    loadIdentity
-    matrixMode $= Modelview 4
+
 
 circle (x, y) radius divs = map toPoint angles where 
     arc       = 2*pi / fromIntegral divs
@@ -44,21 +37,14 @@ circle (x, y) radius divs = map toPoint angles where
 
 display :: IO ()
 display = do
-  -- Clear the screen with the default clear color (black)
   clear [ ColorBuffer ]
-  loadIdentity
-  let points = circle (0,0) (1) 30 :: [(GLfloat, GLfloat)]
 
   renderPrimitive Polygon $ do
-    mapM_ (\(x, y) -> vertex $ Vertex2 x y) points
-
-
-  swapBuffers
+    mapM_ (\(x, y) -> vertex $ Vertex2 x y) (circle (0,0) (1) 30 :: [(GLfloat, GLfloat)])
+  
+  swapBuffers -- esto hace flush y otras cosas
   a <- readPixelArray (0) (0) myWidth2 myHeight2 ----------------------------------------
-  let ss = fst $ foldl foldealo ("",1) a
-  writeFile "asdf" $ reverse ss
-  -- Send all of the drawing commands to the OpenGL server
-  --flush
+  writeFile "output" $ reverse $ fst $ foldl foldealo ("",1) a
   where
     foldealo = (\(s,cnt) x -> if cnt==myWidth then (('\n'):((f x):s),1) else ((f x):s,cnt+1))
     f 0 = '0'
@@ -71,11 +57,7 @@ main = do
   initialWindowSize $= Size myWidth myHeight -----------------------------------------
   initialWindowPosition $= Position 700 100
   initialDisplayMode $= [DoubleBuffered,RGBAMode]
-
   createWindow progname
-
-  myinit
-  
+  drawBuffer $= FrontAndBackBuffers
   displayCallback $= display
-  
   mainLoop
