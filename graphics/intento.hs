@@ -11,7 +11,10 @@ import Graphics.Rendering.OpenGL.GL.PixelRectangles.PixelStorage
 
 import Data.Bits
 
-
+myHeight = 220
+myWidth = 220
+myWidth2 = 220
+myHeight2 = 220
 
 readPixelArray :: Int -> Int -> Int -> Int -> IO [Word32]
 readPixelArray x y w h = do
@@ -25,75 +28,54 @@ readPixelArray x y w h = do
         readPixels position size $ PixelData RGBA UnsignedByte ptr
         peekArray arraySize ptr
 
-
-data Pixel = Pixel {
-    red :: Word8, green :: Word8, blue :: Word8, alpha :: Word8
-} deriving (Eq, Show)
-
-readPixels' :: Int -> Int -> Int -> Int -> IO [Pixel]
-readPixels' x y w h = do
-    rawPixels <- readPixelArray x y w h
-    return $ map pixelFromWord32 rawPixels
-
--- pixelFromWord32 0xAABBCCDD = Pixel 0xAA 0xBB 0xCC 0xDD
-pixelFromWord32 :: Word32 -> Pixel
-pixelFromWord32 colour = Pixel (extract 3) (extract 2) (extract 1) (extract 0)
-    where extract idx = fromIntegral $ (colour `shiftR` (idx * 8)) .&. 0xFF
-
-
-
 myinit :: IO ()
 myinit = do
     drawBuffer $= FrontAndBackBuffers
-    readBuffer $= FrontAndBackBuffers
-    -- glClearColor(0.0, 0.0, 0.0, 0.0);
     rowAlignment Unpack $= 1
-    viewport $= (Position 0 0, Size 100 100)
+    --viewport $= (Position 0 0, Size myWidth myHeight) ------------------------------
     matrixMode $= Projection
     loadIdentity
     matrixMode $= Modelview 4
 
-main :: IO ()
-main = do
-  -- Initialize OpenGL via GLUT
-  (progname, _) <- getArgsAndInitialize
-  initialDisplayMode $= [DoubleBuffered,RGBAMode]
-  initialWindowSize $= Size 100 100
-  initialWindowPosition $= Position 700 100
-
-  myinit
-
-  -- Create the output window
-  createWindow progname
--- Every time the window needs to be updated, call the display function
-  displayCallback $= display
-  
-  -- Let GLUT handle the window events, calling the displayCallback as fast as it can
-  mainLoop
-
-
-
 circle (x, y) radius divs = map toPoint angles where 
-    arc       = (pi/2) / fromIntegral divs
+    arc       = 2*pi / fromIntegral divs
     toPoint a = (x + cos a * radius, y + sin a * radius)
     angles    = map ((*arc) . fromIntegral) [0..divs]
-
 
 display :: IO ()
 display = do
   -- Clear the screen with the default clear color (black)
   clear [ ColorBuffer ]
   loadIdentity
-  let points = circle (0,0) (1) 5 :: [(GLfloat, GLfloat)]
+  let points = circle (0,0) (1) 30 :: [(GLfloat, GLfloat)]
 
   renderPrimitive Polygon $ do
     mapM_ (\(x, y) -> vertex $ Vertex2 x y) points
 
 
   swapBuffers
-  a <- readPixels' (0) (0) 100 100
-  mapM_ print a
-
+  a <- readPixelArray (0) (0) myWidth2 myHeight2 ----------------------------------------
+  let ss = fst $ foldl foldealo ("",1) a
+  writeFile "asdf" $ reverse ss
   -- Send all of the drawing commands to the OpenGL server
   --flush
+  where
+    foldealo = (\(s,cnt) x -> if cnt==myWidth then (('\n'):((f x):s),1) else ((f x):s,cnt+1))
+    f 0 = '0'
+    f _ = '1'
 
+main :: IO ()
+main = do
+  -- Initialize OpenGL via GLUT
+  (progname, _) <- getArgsAndInitialize
+  initialWindowSize $= Size myWidth myHeight -----------------------------------------
+  initialWindowPosition $= Position 700 100
+  initialDisplayMode $= [DoubleBuffered,RGBAMode]
+
+  createWindow progname
+
+  myinit
+  
+  displayCallback $= display
+  
+  mainLoop
