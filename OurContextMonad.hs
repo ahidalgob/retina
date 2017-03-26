@@ -1,9 +1,9 @@
 -- Retina - Proyecto de Traductores
--- OurMonad, Monad para realizar el analisis de contexto y sus funciones respectivas.
+-- OurContextMonad, Monad para realizar el analisis de contexto y sus funciones respectivas.
 -- Augusto Hidalgo 13-10665
 -- Genesis Kufatty 13-10708
 
-module OurMonad where
+module OurContextMonad where
 
 import Control.Monad.Error
 import Control.Monad.State
@@ -29,11 +29,11 @@ data Scope = Scope {getList::[(String, OurType)]}
 
 data FuncSign = FuncSign {getId::String, getType:: OurType, getParamList::[(String,OurType)]}
 
-data SymTable = SymTable {getScopes::[Scope], getFuncSigns::[FuncSign]}
+data ContextSymTable = ContextSymTable {getScopes::[Scope], getFuncSigns::[FuncSign]}
 
-data OurState = OurState {getSymTable::SymTable, getReturnT::(Maybe OurType)}
+data OurContextState = OurContextState {getSymTable::ContextSymTable, getReturnT::(Maybe OurType)}
 
-emptyState = OurState (SymTable [] []) Nothing
+emptyContextState = OurContextState (ContextSymTable [] []) Nothing
 
 data OurLog = OurLog {getScopesLog::String, getWarningsLog::String}
 
@@ -49,12 +49,12 @@ scopeToOurLog s = OurLog s ""
 warningToOurLog s = OurLog "" s
 
 
-type OurMonad a = StateT OurState (WriterT OurLog (Either OurError)) a
+type OurContextMonad a = StateT OurContextState (WriterT OurLog (Either OurError)) a
 
-runOurMonad :: OurMonad a -> OurState -> Either OurError ((a, OurState), OurLog)
-runOurMonad f a = runWriterT (runStateT f a)
+runOurContextMonad :: OurContextMonad a -> OurContextState -> Either OurError ((a, OurContextState), OurLog)
+runOurContextMonad f a = runWriterT (runStateT f a)
 
-getLog f a = show $ snd $ getRight $ runOurMonad f a `catchError` (\(OurError pos s) -> error $ "\nError en linea "++show pos++":\n"++s)
+getLog f a = show $ snd $ getRight $ runOurContextMonad f a `catchError` (\(OurError pos s) -> error $ "\nError en linea "++show pos++":\n"++s)
     where
         getRight (Right x) = x
 
@@ -62,15 +62,15 @@ getLog f a = show $ snd $ getRight $ runOurMonad f a `catchError` (\(OurError po
 lookInList :: String -> [(String, OurType)] -> Maybe OurType
 lookInList s l = snd <$> find ((==s).fst) l
 
-lookInLastScope :: String -> OurMonad (Maybe OurType)
+lookInLastScope :: String -> OurContextMonad (Maybe OurType)
 lookInLastScope s = lookInList s.getList.head'.getScopes.getSymTable <$> get
                     where head' [] = Scope []
                           head' (a:as) = a
 
-lookInSymTable :: String -> OurMonad (Maybe OurType)
+lookInSymTable :: String -> OurContextMonad (Maybe OurType)
 lookInSymTable s = msum . map (lookInList s) . (map getList).getScopes.getSymTable <$> get
 
-newScope :: OurMonad ()
+newScope :: OurContextMonad ()
 newScope = do
     oldState <- get
     let oldSymTable = getSymTable oldState
@@ -78,14 +78,14 @@ newScope = do
         newSymTable = oldSymTable {getScopes = (Scope []):oldScopes}
     put $ oldState {getSymTable = newSymTable}
 
-removeLastScope :: OurMonad ()
+removeLastScope :: OurContextMonad ()
 removeLastScope = do
     oldState <- get
     let oldSymTable = getSymTable oldState
         newSymTable = oldSymTable {getScopes = tail.getScopes $ oldSymTable }
     put $ oldState { getSymTable = newSymTable}
         
-addToSymTable :: (String, OurType) -> OurMonad ()
+addToSymTable :: (String, OurType) -> OurContextMonad ()
 addToSymTable pair = do
     oldState <- get
     let oldSymTable = getSymTable oldState
@@ -95,7 +95,7 @@ addToSymTable pair = do
         newSymTable = oldSymTable { getScopes = newScopeList }
     put $ oldState { getSymTable = newSymTable }
 
-addFunctionSign :: String -> [(String, OurType)] -> OurType -> OurMonad () -- No crea el scope
+addFunctionSign :: String -> [(String, OurType)] -> OurType -> OurContextMonad () -- No crea el scope
 addFunctionSign s params typ = do 
     oldState <- get
     let newFunc = FuncSign s typ params
@@ -103,7 +103,7 @@ addFunctionSign s params typ = do
         newSymTable = oldSymTable { getFuncSigns = newFunc:(getFuncSigns oldSymTable) }
     put $ oldState { getSymTable = newSymTable }
 
-lookFunction :: String -> OurMonad Bool
+lookFunction :: String -> OurContextMonad Bool
 lookFunction s = do
     oldState <- get  
     let funcsList = map (getId) (getFuncSigns.getSymTable $ oldState)
@@ -113,29 +113,29 @@ lookFunction s = do
             _ -> True
     return ans
 
-getFunctionReturnType :: String -> OurMonad OurType
+getFunctionReturnType :: String -> OurContextMonad OurType
 getFunctionReturnType s = do
     oldState <- get
     let listFunc = getFuncSigns.getSymTable $ oldState
         func = filter ((==s).getId) listFunc 
     return $ getType.head $ func
 
-checkFunction :: String -> [OurType] -> OurMonad (Bool,Int)
+checkFunction :: String -> [OurType] -> OurContextMonad (Bool,Int)
 checkFunction s list = do
     oldState <- get
     let listF = getParamList $ head $ filter ((==s).getId) (getFuncSigns.getSymTable $ oldState)
         listType = map snd listF
     return (listType==list,length listType)
 
-setReturnType :: Maybe OurType -> OurMonad ()
+setReturnType :: Maybe OurType -> OurContextMonad ()
 setReturnType typeR = do 
     oldState <- get
     put $ oldState { getReturnT = typeR }
 
-getReturnType :: OurMonad (Maybe OurType)
+getReturnType :: OurContextMonad (Maybe OurType)
 getReturnType = get >>= (return.getReturnT)
 
-lastScopeToLog :: String -> OurMonad ()
+lastScopeToLog :: String -> OurContextMonad ()
 lastScopeToLog scopeName = do
     scopes <- getScopes.getSymTable <$> get
     let nested = length scopes
@@ -145,6 +145,6 @@ lastScopeToLog scopeName = do
     tell.scopeToOurLog $ concatMap (\s -> ident++"|> "++s++"\n" ) $ map showVarAndType $ reverse.getList $ lastScope
     where
         showVarAndType (s, t) = s ++" : "++ show t
-warningToLog :: String -> OurMonad ()
+warningToLog :: String -> OurContextMonad ()
 warningToLog warning = do
     tell.warningToOurLog $ warning++"\n"

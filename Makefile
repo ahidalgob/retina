@@ -1,4 +1,4 @@
-retina: Lexer Parser OurMonad SemanticChecker
+retina: Lexer Parser OurContextMonad ContextChecker
 	ghc --make -w retina.hs
 
 Lexer: Lexer.x
@@ -7,11 +7,11 @@ Lexer: Lexer.x
 Parser: Parser.y
 	happy Parser.y
 
-OurMonad: OurMonad.hs
-	ghc --make -w OurMonad.hs
+OurContextMonad: OurContextMonad.hs
+	ghc --make -w OurContextMonad.hs
 
-SemanticChecker: SemanticChecker.hs
-	ghc --make -w SemanticChecker.hs
+ContextChecker: ContextChecker.hs
+	ghc --make -w ContextChecker.hs
 
 AST: AST.hs
 	ghc --make -w AST.hs

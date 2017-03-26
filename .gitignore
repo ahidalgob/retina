@@ -1,5 +1,7 @@
 *.hi
 *.o
+*.pbm
 Lexer.hs
 Parser.hs
 retina
+^intento$

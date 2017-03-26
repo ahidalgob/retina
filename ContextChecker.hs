@@ -3,9 +3,9 @@
 -- Augusto Hidalgo 13-10665
 -- Genesis Kufatty 13-10708
 
-module SemanticChecker where
+module ContextChecker where
 import AST
-import OurMonad
+import OurContextMonad
 import Control.Monad.Error
 import Control.Monad.State
 import Control.Monad.Writer
@@ -39,7 +39,7 @@ typeNConvert NumberN = Number
 ----------------------------------------------------------
 -- checkConstrN ------------------------------------------
 ----------------------------------------------------------
-checkConstrN :: ConstrN -> OurMonad ()
+checkConstrN :: ConstrN -> OurContextMonad ()
 checkConstrN (PN ldfN instrListN) = do
     addFunctionSign "home" [] Void
     addFunctionSign "openeye" [] Void
@@ -62,11 +62,11 @@ checkConstrN (LDFN l) = do
 checkConstrN (LDN l) = do
     mapM_ proccessTypeAndList l 
     where 
-        proccessTypeAndList :: (TypeN, [VarN]) -> OurMonad ()
+        proccessTypeAndList :: (TypeN, [VarN]) -> OurContextMonad ()
         proccessTypeAndList (tN, varNList) = do
             let t = typeNConvert tN
             mapM_ (adder t) varNList -- lanza error sin pos y en el with catcharlo y lanzarlo bien
-        adder :: OurType -> VarN -> OurMonad ()
+        adder :: OurType -> VarN -> OurContextMonad ()
         adder t varN = do 
             let (s,me) = case varN of
                     (VarN st) -> (st, Nothing)
@@ -85,7 +85,7 @@ checkConstrN (LDN l) = do
 ----------------------------------------------------------
 -- checkFuncDefN -----------------------------------------
 ----------------------------------------------------------
-checkFuncDefN :: FuncDefN -> OurMonad ()
+checkFuncDefN :: FuncDefN -> OurContextMonad ()
 checkFuncDefN funcDefN = do
     let (funId, paramList, instrListN, lineNum, retType) = case funcDefN of
             DFN s p i (ln,_) -> (s,(map (\(x,y) -> (y, typeNConvert x))).listLPN $ p,i,ln, Void)
@@ -118,14 +118,14 @@ checkFuncDefN funcDefN = do
 ----------------------------------------------------------
 -- checkInstrListN ---------------------------------------
 ----------------------------------------------------------
-checkInstrListN :: InstrListN -> OurMonad Returned
+checkInstrListN :: InstrListN -> OurContextMonad Returned
 checkInstrListN (LIN instrList) = do
     (foldl (|+|) No) <$> (mapM checkInstrN instrList)
 
 ----------------------------------------------------------
 -- checkInstrN -------------------------------------------
 ----------------------------------------------------------
-checkInstrN :: InstrN -> OurMonad Returned
+checkInstrN :: InstrN -> OurContextMonad Returned
 checkInstrN (WithDoN ldn lin (lineNum,_)) = do
     newScope
     checkConstrN ldn `catchError` (reThrow lineNum)
@@ -134,7 +134,7 @@ checkInstrN (WithDoN ldn lin (lineNum,_)) = do
     removeLastScope
     return res
     where
-        reThrow :: Int -> OurError -> OurMonad ()
+        reThrow :: Int -> OurError -> OurContextMonad ()
         reThrow lineNum (OurErrorNoPos s) = throwError $ OurError lineNum s
         reThrow lineNum e = throwError e
 
@@ -228,7 +228,7 @@ checkInstrN (ExprN expN) = do
 ----------------------------------------------------------
 -- checkExpN ---------------------------------------------
 ----------------------------------------------------------
-checkExpN :: ExpN -> OurMonad OurType
+checkExpN :: ExpN -> OurContextMonad OurType
 checkExpN (IdN s (lineNum,_)) = do
     bo <- lookInSymTable s
     when (bo==Nothing) $ throwError $ OurError lineNum $ "'"++s++"' no esta declarada en este alcance."
@@ -297,7 +297,7 @@ checkExpN (NumberLiteralN s _) = do
 ----------------------------------------------------------
 -- checkWordListN ----------------------------------------
 ----------------------------------------------------------
-checkWordListN :: [WordN] -> OurMonad ()
+checkWordListN :: [WordN] -> OurContextMonad ()
 checkWordListN (wordList) = do
     mapM_ checkWord wordList
     where checkWord (PWEN exp) = do

@@ -6,8 +6,8 @@
 import Lexer
 import AST
 import qualified Parser as P
-import SemanticChecker
-import OurMonad
+import ContextChecker
+import OurContextMonad
 import System.Environment
 
 main = do
@@ -18,8 +18,7 @@ main = do
                         putStrLn "Error lexicografico (alex isn't happy)"
                         mapM_ printToken $ reverse $ tokenList ls
                     else do
-                        --Imprimir AST
                         --printConstrN 0 . (P.parse) . reverse . tokenList $ ls 
-                        putStrLn $ getLog (checkConstrN $ (P.parse) . reverse . tokenList $ ls) emptyState
+                        putStrLn $ getLog (checkConstrN $ (P.parse) . reverse . tokenList $ ls) emptyContextState
                         
         Left e -> putStrLn e
