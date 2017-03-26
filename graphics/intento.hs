@@ -28,38 +28,51 @@ readPixelArray x y w h = do
         readPixels position size $ PixelData RGBA UnsignedByte ptr
         peekArray arraySize ptr
 
-
-
 circle (x, y) radius divs = map toPoint angles where 
     arc       = 2*pi / fromIntegral divs
     toPoint a = (x + cos a * radius, y + sin a * radius)
     angles    = map ((*arc) . fromIntegral) [0..divs]
 
-display :: IO ()
-display = do
-  clear [ ColorBuffer ]
-
+dibujitoCirculo :: IO ()
+dibujitoCirculo = do
   renderPrimitive Polygon $ do
     mapM_ (\(x, y) -> vertex $ Vertex2 x y) (circle (0,0) (1) 30 :: [(GLfloat, GLfloat)])
-  
-  a <- readPixelArray (0) (0) myWidth2 myHeight2 ----------------------------------------
-  writeFile "output.pbm" $ "P1\n" ++ show myWidth ++ " " ++ show myHeight ++ "\n" ++ (reverse $ fst $ foldl foldealo ("",1) a)
-  swapBuffers -- esto hace flush y otras cosas
+
+dibujarRayitas :: IO ()
+dibujarRayitas = do
+  renderPrimitive Lines $ do
+    vertex $ (Vertex2 (-1) (-1) :: Vertex2 GLfloat)
+    vertex $ (Vertex2 1 1 :: Vertex2 GLfloat)
+  renderPrimitive Lines $ do
+    vertex $ (Vertex2 (-1) 1 :: Vertex2 GLfloat)
+    vertex $ (Vertex2 1 (-1) :: Vertex2 GLfloat)
+
+escribirPBM :: String -> IO ()
+escribirPBM nombre = do
+  a <- readPixelArray (0) (0) myWidth2 myHeight2
+  writeFile nombre $ "P1\n" ++ show myWidth ++ " " ++ show myHeight ++ "\n" ++ (reverse $ fst $ foldl foldealo ("",1) a)
   where
     foldealo = (\(s,cnt) x -> if cnt==myWidth then (('\n'):((f x):s),1) else ((' '):((f x):s),cnt+1))
     f x = case x .&. 0x00FFFFFF of
       0 -> '1'
       _ -> '0'
 
+display :: IO ()
+display = do
+  clear [ ColorBuffer ]
+  dibujitoCirculo
+  dibujarRayitas
+  escribirPBM "output.pbm"
+  swapBuffers
 
 main :: IO ()
 main = do
-  -- Initialize OpenGL via GLUT
-  (progname, _) <- getArgsAndInitialize
-  initialWindowSize $= Size myWidth myHeight -----------------------------------------
-  initialWindowPosition $= Position 700 100
+  _ <- getArgsAndInitialize
+  initialWindowSize $= Size myWidth myHeight
+  initialWindowPosition $= Position 400 400
   initialDisplayMode $= [DoubleBuffered,RGBAMode]
-  createWindow progname
+  createWindow "probando agn"
   drawBuffer $= FrontAndBackBuffers
   displayCallback $= display
   mainLoop
+  
