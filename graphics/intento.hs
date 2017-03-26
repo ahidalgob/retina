@@ -44,11 +44,11 @@ display = do
   
   swapBuffers -- esto hace flush y otras cosas
   a <- readPixelArray (0) (0) myWidth2 myHeight2 ----------------------------------------
-  writeFile "output" $ reverse $ fst $ foldl foldealo ("",1) a
+  writeFile "output.pbm" $ "P1\n" ++ show myWidth ++ " " ++ show myHeight ++ "\n" ++ (reverse $ fst $ foldl foldealo ("",1) a)
   where
-    foldealo = (\(s,cnt) x -> if cnt==myWidth then (('\n'):((f x):s),1) else ((f x):s,cnt+1))
-    f 0 = '0'
-    f _ = '1'
+    foldealo = (\(s,cnt) x -> if cnt==myWidth then (('\n'):((f x):s),1) else ((' '):((f x):s),cnt+1))
+    f 0 = '1'
+    f _ = '0'
 
 main :: IO ()
 main = do
