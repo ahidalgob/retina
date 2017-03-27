@@ -7,60 +7,60 @@ module AST where
 import Control.Monad
 
 
-data ConstrN = 
-    PN ConstrN InstrListN                           |
-    LDFN {listLDFN :: [FuncDefN]}                   |
-    LDN {listLDN :: [(TypeN, [VarN])]}
+data ConstrN = --Construcciones
+    PN ConstrN InstrListN                           | --Constructor del programa
+    LDFN {listLDFN :: [FuncDefN]}                   | --Lista de declaracion de funciones
+    LDN {listLDN :: [(TypeN, [VarN])]}                --Lista de declaracion de variables
     deriving Show
     
-data TypeN =
+data TypeN = 
     BooleanN                                        |
     NumberN
     deriving Show
 
-data ExpN =
-    IdN { getString::String, getPos::(Int, Int) }                                   |
-    TrueN { getPos::(Int, Int) }                                                    |   
-    FalseN { getPos::(Int, Int) }                                                   |
-    ParN  { getExp::ExpN, getPos::(Int, Int) }                                      |
-    ComparN { getExp::ExpN, getString::String, getExp1::ExpN, getPos::(Int, Int) }  |
-    NotN { getExp::ExpN, getPos::(Int, Int) }                                       |
-    LogicN  { getExp::ExpN, getString::String, getExp1::ExpN, getPos::(Int, Int) }  |
-    FuncN  { getString::String, getExpList::ExpListN, getPos::(Int, Int) }          |
-    MinusN { getExp::ExpN, getPos::(Int, Int) }                                     |
-    AritN { getExp::ExpN, getString::String, getExp1::ExpN, getPos::(Int, Int) }    |
-    NumberLiteralN  { getString::String, getPos::(Int, Int) }
+data ExpN = --Expresiones
+    IdN { getString::String, getPos::(Int, Int) }                                   | --Identificador
+    TrueN { getPos::(Int, Int) }                                                    | --True
+    FalseN { getPos::(Int, Int) }                                                   | --False
+    ParN  { getExp::ExpN, getPos::(Int, Int) }                                      | --Parentesis
+    ComparN { getExp::ExpN, getString::String, getExp1::ExpN, getPos::(Int, Int) }  | --Operacion de comparacion
+    NotN { getExp::ExpN, getPos::(Int, Int) }                                       | --Operacion de negacion
+    LogicN  { getExp::ExpN, getString::String, getExp1::ExpN, getPos::(Int, Int) }  | --Operacion logica
+    FuncN  { getString::String, getExpList::ExpListN, getPos::(Int, Int) }          | --Llamado de funcion
+    MinusN { getExp::ExpN, getPos::(Int, Int) }                                     | --Operacion unaria de negacion
+    AritN { getExp::ExpN, getString::String, getExp1::ExpN, getPos::(Int, Int) }    | --Operacion aritmetica
+    NumberLiteralN  { getString::String, getPos::(Int, Int) }                         --Literal numerico  
     deriving Show
 
-data FuncDefN =
-    DFN String ParamListN InstrListN (Int,Int)      |
-    RDFN String ParamListN TypeN InstrListN (Int,Int)
+data FuncDefN = --Definicion de funcion
+    DFN String ParamListN InstrListN (Int,Int)      | --Definicion de funcion sin retorno
+    RDFN String ParamListN TypeN InstrListN (Int,Int) --Definicion de funcion con retorno
     deriving Show
 
-data ParamListN = 
-    LPN {listLPN :: [(TypeN, String)]}              |
-    LPNVN {listLPNVN :: [(TypeN, String)]}
+data ParamListN = --Lista de parametros
+    LPN {listLPN :: [(TypeN, String)]}              | --Lista de parametros 
+    LPNVN {listLPNVN :: [(TypeN, String)]}            --Lista de parametros no vacia  
     deriving Show
 
-data ExpListN =
-    LEN {listLEN :: [ExpN]}                         |
-    LENVN {listLENVN :: [ExpN]}
+data ExpListN = --Lista de expresiones
+    LEN {listLEN :: [ExpN]}                         | --Expresiones que pueden ser vacias
+    LENVN {listLENVN :: [ExpN]}                       --Expresiones no vacias  
     deriving Show
 
-data VarListN =
+data VarListN = --Lista de variables
     LVarN {listLVN :: [VarN]}
     deriving Show
 
-data VarN =
-    VarN String                                     |
+data VarN = --Variables
+    VarN String                                     | 
     VarValN String ExpN
     deriving Show
 
-data InstrListN = 
+data InstrListN = --Lista de instrucciones
     LIN {listLIN :: [InstrN]}
     deriving Show
 
-data WordListN =
+data WordListN = --Lista de imprimibles
     LPWN {listLPWN :: [WordN]}
     deriving Show
 
@@ -70,7 +70,7 @@ data WordN =
     deriving Show
 
 
-data InstrN =
+data InstrN = --Instrucciones
     WithDoN ConstrN InstrListN (Int,Int)                        |
     RepeatN ExpN InstrListN (Int,Int)                           |
     AssignN String ExpN (Int,Int)                               |
