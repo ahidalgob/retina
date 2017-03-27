@@ -1,9 +1,0 @@
-program
-    with
-        number angle = 0;
-    do
-        while angle do
-            writeln "foo";
-        end;
-    end;
-end;
