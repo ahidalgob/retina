@@ -1,8 +1,0 @@
-func baz(boolean p) -> boolean
-begin
-    return p == true;
-end;
-
-program
-    writeln baz(3);
-end;
