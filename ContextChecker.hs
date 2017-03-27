@@ -5,6 +5,7 @@
 
 module ContextChecker where
 import AST
+import OurType
 import OurContextMonad
 import Control.Monad.Error
 import Control.Monad.State
@@ -30,11 +31,6 @@ Idk |*| _ = Idk
 _ |*| Idk = Idk
 Yes |*| Yes = Yes
 
-
-
-typeNConvert :: TypeN -> OurType
-typeNConvert BooleanN = Boolean
-typeNConvert NumberN = Number
 
 ----------------------------------------------------------
 -- checkConstrN ------------------------------------------

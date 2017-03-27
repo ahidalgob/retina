@@ -6,6 +6,7 @@
 module RunMonad where
 
 import AST
+import OurType
 import Control.Monad.State
 import Control.Monad.Writer
 import Control.Monad
@@ -17,8 +18,6 @@ import Data.List
 data CursorStatus = On | Off deriving (Show,Eq)
 
 data Val = BooleanVal Bool | NumberVal Double deriving (Show,Eq)
-
-data OurType = Number | Boolean | Void deriving Eq
 
 type Pos = (Double, Double)
 
@@ -50,12 +49,13 @@ addToSymTable pair = do
         newSymTable = oldSymTable { getScopes = newScopeList }
     put $ oldState { getSymTable = newSymTable }
 
-fst' :: VarDescript -> String
-fst' (s,_,_,_) = s
+
 
 lookInList :: String -> [VarDescript] -> Maybe VarDescript
 lookInList s l = find ((==s).fst') l
-
+    where
+        fst' :: VarDescript -> String
+        fst' (s,_,_,_) = s
 lookInSymTable :: String -> RunMonad (Maybe VarDescript)
 lookInSymTable s = msum . map (lookInList s) . (map getList).getScopes.getSymTable <$> get
 
