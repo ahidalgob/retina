@@ -22,11 +22,9 @@ data OurType = Number | Boolean | Void deriving Eq
 
 type Pos = (Double, Double)
 
-type Mutable = Bool
-
 type Direction = Double
 
-type VarDescript = (String,Val,Mutable,OurType)
+type VarDescript = (String,Val,Bool,OurType)
 
 data Cursor = Cursor {getPos:: Pos, getDirection::Direction, getStatus::CursorStatus }
 
@@ -74,7 +72,7 @@ newScope = do
         newSymTable = oldSymTable {getScopes = (Scope []):oldScopes}
     put $ oldState {getSymTable = newSymTable}
 
- --CAMBIAR VALOR SYMTABLE FALTA LEER 
+ --CAMBIAR VALOR SYMTABLE FALTA LEER
 
 getSymTable' :: RunMonad (SymTable)
 getSymTable' = do
