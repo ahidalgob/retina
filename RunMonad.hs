@@ -18,7 +18,7 @@ import Data.Maybe
 
 data CursorStatus = On | Off deriving (Show,Eq)
 
-data Val = BooleanVal Bool | NumberVal Double deriving (Show,Eq)
+data Val = BooleanVal Bool | VoidVal | NumberVal Double deriving (Show,Eq)
 
 type Pos = (Double, Double)
 
@@ -120,35 +120,35 @@ setSymTable newSymTable = do
 
 ---------------------------------------- FUNDEC -----------------------------------------
 
-addToFundec :: FuncDescript -> RunMonad ()
-addToFundec tuple = do
+addToFunDec :: FuncDescript -> RunMonad ()
+addToFunDec tuple = do
     oldState <- get
     let oldFunDec = getFunDec oldState
         newFunDec = FuncDec $ tuple:(getDec oldFunDec)
     put $ oldState { getFunDec = newFunDec }
 
-findFundec :: String -> RunMonad (Maybe FuncDescript)
-findFundec s = do
-    find ((==s).fst').getDec.getFunDec <$> get
+findFunDec :: String -> RunMonad FuncDescript
+findFunDec s = do
+    fromJust.find ((==s).fst').getDec.getFunDec <$> get
 
 
 ---------------------------------------- CURSOR -----------------------------------------
 
-onCursor :: CursorStatus -> RunMonad () 
-onCursor status = do
+onCursor ::  RunMonad () 
+onCursor = do
     oldState <- get
     let oldCursor = getCursor oldState
         newCursor = oldCursor { getStatus = On }
     put $ oldState { getCursor = newCursor }
 
-offCursor :: CursorStatus -> RunMonad () 
-offCursor status = do
+offCursor :: RunMonad () 
+offCursor = do
     oldState <- get
     let oldCursor = getCursor oldState
         newCursor = oldCursor { getStatus = Off }
     put $ oldState { getCursor = newCursor }
 
-forward :: Int -> RunMonad ()
+forward :: Double -> RunMonad ()
 forward steps = do
     oldState <- get
     let cursor = getCursor oldState
@@ -165,7 +165,7 @@ forward steps = do
     put $ oldState { getMaxRight = right, getMaxLeft = left, getMaxUp = up, getMaxDown = down }
     setPosition (x+ cos direction,y+ sin direction)
 
-backward :: Int -> RunMonad ()
+backward :: Double -> RunMonad ()
 backward steps = do
     oldState <- get
     let cursor = getCursor oldState

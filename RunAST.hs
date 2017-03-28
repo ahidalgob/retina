@@ -6,6 +6,7 @@ import OurType
 import AST
 import Control.Monad
 import Control.Applicative
+import Data.Maybe  
 
 ----------------------------------------------------------
 -- runConstrN ------------------------------------------
@@ -51,7 +52,7 @@ runFuncDefN funcDefN = do
             DFN s p i _ -> (s,(map (\(x,y) -> (y, typeNConvert x))).listLPN $ p,i, Void)
             RDFN s p ret i _ -> (s,(map (\(x,y) -> (y, typeNConvert x))).listLPN $ p,i, typeNConvert ret)
 
-    addToFundec (funId, map fst paramList, listLIN instrListN, retType)
+    addToFunDec (funId, map fst paramList, listLIN instrListN, retType)
 
 
 ----------------------------------------------------------
@@ -195,3 +196,76 @@ runExpN (NotN expn _) = do
     BooleanVal exp0 <- runExpN expn
     return $ BooleanVal (not exp0)
 
+runExpN (LogicN exp0 s exp1 _) = do
+    BooleanVal ex0 <- runExpN exp0
+    BooleanVal ex1 <- runExpN exp1
+    case s of
+        "and" -> return $ BooleanVal (ex0 && ex1)
+        "or" -> return $ BooleanVal (ex0 || ex1)
+
+runExpN (FuncN "home" explist _) = do
+    listEx <- mapM runExpN (listLEN explist)
+    setPosition (0,0) 
+    return VoidVal
+
+runExpN (FuncN "openeye" explist _) = do
+    listEx <- mapM runExpN (listLEN explist)
+    onCursor
+    return VoidVal
+
+runExpN (FuncN "closeeye" explist _) = do
+    listEx <- mapM runExpN (listLEN explist)
+    offCursor
+    return VoidVal
+
+runExpN (FuncN "forward" explist _) = do
+    listEx <- mapM runExpN (listLEN explist)
+    forward $ fromVal $ head listEx
+    return VoidVal
+
+runExpN (FuncN "backward" explist _) = do
+    listEx <- mapM runExpN (listLEN explist)
+    backward $ fromVal $ head listEx
+    return VoidVal
+
+runExpN (FuncN "rotatel" explist _) = do
+    listEx <- mapM runExpN (listLEN explist)
+    rotatel $ fromVal $ head listEx
+    return VoidVal
+
+runExpN (FuncN "rotater" explist _) = do
+    listEx <- mapM runExpN (listLEN explist)
+    rotater $ fromVal $ head listEx
+    return VoidVal
+
+runExpN (FuncN "setposition" explist _) = do
+    listEx <- mapM runExpN (listLEN explist)
+    setPosition $ (fromVal $ listEx !! 0,fromVal $ listEx !! 1)
+    return VoidVal
+
+runExpN (FuncN s explist _) = do
+    oldSymTable <- getSymTable'
+    listEx <- mapM runExpN (listLEN explist)
+    createSymTable
+    (_,namesVar,listInst,_) <- findFunDec s
+    let variables = foldr (\(name,value) acc-> (name,value,False,Number):acc) [] (zip namesVar listEx) 
+    mapM_ addToSymTable variables
+    posiblesVal <- mapM runInstrN listInst
+    setSymTable oldSymTable
+    case msum posiblesVal of
+        Just val -> return val
+        _ -> return VoidVal 
+
+runExpN (MinusN exp _) = do
+    NumberVal ex <- runExpN exp
+    return $ NumberVal (-ex)
+
+--runExpN (AritN exp0 s exp1) = do
+
+runExpN (NumberLiteralN exp _) = do 
+    let num = read exp :: Double
+    return $ NumberVal num
+
+fromVal val = case val of
+    NumberVal x -> x
+    _ -> 1.0 --Nunca pasara xD
