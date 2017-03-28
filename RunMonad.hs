@@ -6,7 +6,6 @@
 module RunMonad where
 
 import AST
-import OurType
 import Control.Monad.State
 import Control.Monad.Writer
 import Control.Monad
@@ -18,6 +17,8 @@ import Data.List
 data CursorStatus = On | Off deriving (Show,Eq)
 
 data Val = BooleanVal Bool | NumberVal Double deriving (Show,Eq)
+
+data OurType = Number | Boolean | Void deriving Eq
 
 type Pos = (Double, Double)
 
@@ -35,7 +36,7 @@ data Scope = Scope {getList::[VarDescript]}
 
 data SymTable = SymTable {getScopes::[Scope]}
 
-data OurState = OurState {getSymTable::SymTable, getCursor::Cursor,getFunDec::FuncDec}
+data OurState = OurState {getSymTable::SymTable, getCursor::Cursor,getFunDec::FuncDec, getMaxDown::Double, getMaxUp::Double, getMaxRight::Double,getMaxLeft::Double}
 
 data FuncDec = FuncDec { getDec:: [FuncDescript]}
 
@@ -97,7 +98,7 @@ changeValInSymTable (string,newVal) = do
                                         _ -> case (changeValInScope (getList list) string newVal) of
                                                 (True,changedScope) -> (True,Scope changedScope:scopes)
                                                 (False,equalScope) ->  (changed,Scope equalScope:scopes)
-                                    
+
 getSymTable' :: RunMonad (SymTable)
 getSymTable' = do
     getSymTable <$> get
@@ -149,12 +150,15 @@ forward steps = do
         (x,y) = getPosition cursor
         direc = getDirection cursor
         direction = toRadian direction 
+        down = (getMaxDown oldState) `min` y `min` (y+sin direction)
+        up = (getMaxUp oldState) `max` y `max` (y+sin direction)
+        left = getMaxLeft oldState `min` x `min` (x+sin direction)
+        right = getMaxRight oldState `max` x `max` (x+cos direction)
     case (getStatus cursor) of 
         Off -> return ()
         On -> tell [((x,y),(cos direction + x,sin direction + y))]
+    put $ oldState { getMaxRight = right, getMaxLeft = left, getMaxUp = up, getMaxDown = down }
     setPosition (x+ cos direction,y+ sin direction)
-
-
 
 backward :: Int -> RunMonad ()
 backward steps = do
@@ -162,10 +166,15 @@ backward steps = do
     let cursor = getCursor oldState
         (x,y) = getPosition cursor
         direc = getDirection cursor
-        direction = toRadian direction 
+        direction = toRadian direction
+        down = (getMaxDown oldState) `min` y `min` (y+sin direction)
+        up = (getMaxUp oldState) `max` y `max` (y+sin direction)
+        left = getMaxLeft oldState `min` x `min` (x+sin direction)
+        right = getMaxRight oldState `max` x `max` (x+cos direction)
     case (getStatus cursor) of 
         Off -> return ()
         On -> tell [((x,y),(x - cos direction,y - sin direction))]
+    put $ oldState { getMaxRight = right, getMaxLeft = left, getMaxUp = up, getMaxDown = down }
     setPosition (x- cos direction,y- sin direction)
 
 setPosition :: Pos -> RunMonad()
