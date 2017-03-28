@@ -16,6 +16,9 @@ ContextChecker: ContextChecker.hs
 AST: AST.hs
 	ghc --make -w AST.hs
 
+RunAST: RunAST.hs
+	ghc --make -w RunAST.hs
+
 clean:
 	-rm -f *.hi
 	-rm -f *.o
