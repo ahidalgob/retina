@@ -38,6 +38,8 @@ data SymTable = SymTable {getScopes::[Scope]}
 
 data OurState = OurState {getSymTable::SymTable, getCursor::Cursor,getFunDec::FuncDec, getMaxDown::Double, getMaxUp::Double, getMaxRight::Double,getMaxLeft::Double}
 
+ourEmptyState = OurState (SymTable []) (Cursor (0,0) 0 Off) (FuncDec []) 0 0 0 0
+
 data FuncDec = FuncDec { getDec:: [FuncDescript]}
 
 type RunMonad a = StateT OurState (WriterT [Segment] IO ) a

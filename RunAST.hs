@@ -59,8 +59,8 @@ runFuncDefN funcDefN = do
 ----------------------------------------------------------
 runInstrListN :: InstrListN -> RunMonad (Maybe Val)
 runInstrListN (LIN instrList) = do
-    mapM_ runInstrN instrList -- NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO RETURNSSSSSS
-    return Nothing
+    msum <$> mapM runInstrN instrList
+    
 
 ----------------------------------------------------------
 -- runInstrN -------------------------------------------
@@ -142,18 +142,18 @@ runInstrN (IfThenElseN expn lin1 lin2 _) = do
 runInstrN (WhileN expn lin _) = do
     whileCycle expn lin
 
-checkInstrN (WriteN wordList _) = return Nothing
+runInstrN (WriteN wordList _) = return Nothing
+    
+
+runInstrN (WritelnN wordList _) = return Nothing
  ---------- FALTAAAAAAAAA
 
-checkInstrN (WritelnN wordList _) = return Nothing
+runInstrN (ReadN s _) = return Nothing
  ---------- FALTAAAAAAAAA
 
-checkInstrN (ReadN s _) = return Nothing
- ---------- FALTAAAAAAAAA
+runInstrN (ReturnN expn _) = Just <$> runExpN expn
 
-checkInstrN (ReturnN expn _) = return $ Just $ runExpN expn
-
-checkInstrN (ExprN expn) = do
+runInstrN (ExprN expn) = do
     runExpN expn
     return Nothing
 
