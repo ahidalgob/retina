@@ -55,4 +55,27 @@ runFuncDefN funcDefN = do
 ----------------------------------------------------------
 runInstrListN :: InstrListN -> RunMonad ()
 runInstrListN (LIN instrList) = do
-    (foldl (|+|) No) <$> (mapM checkInstrN instrList)
+    mapM runInstrN instrList
+
+
+----------------------------------------------------------
+-- runInstrN -------------------------------------------
+----------------------------------------------------------
+repeatCycle n lin = do
+    if n > 0
+        then runInstrListN lin
+        else return ()
+
+runInstrN :: InstrN -> RunMonad ()
+runInstrN (WithDoN ldn lin _) = do
+    newScope
+    runConstrN ldn
+    runInstrListN lin
+    removeLastScope
+
+runInstrN (RepeatN expn lin _) = do
+    NumberVal n <- runExpN expn
+    repeatCycle n lin
+
+-- runInstrN (AssignN s expn _) = do
+    
