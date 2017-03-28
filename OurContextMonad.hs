@@ -5,6 +5,7 @@
 
 module OurContextMonad where
 
+import OurType
 import Control.Monad.Error
 import Control.Monad.State
 import Control.Monad.Writer
@@ -16,13 +17,6 @@ import Data.List
 
 data OurError = OurError Int String | OurErrorNoPos String
 instance Error OurError
-
-data OurType = Number | Boolean | Void deriving Eq
-
-instance Show OurType where
-  show Number = "number"
-  show Boolean = "boolean"
-  show Void = "void"
 
 
 data Scope = Scope {getList::[(String, OurType)]}
