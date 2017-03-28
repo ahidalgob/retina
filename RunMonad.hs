@@ -22,13 +22,15 @@ data OurType = Number | Boolean | Void deriving Eq
 
 type Pos = (Double, Double)
 
+type Segment = ((Double, Double),(Double, Double))
+
 type Direction = Double
 
 type VarDescript = (String,Val,Bool,OurType)
 
 type FuncDescript = (String,[String],[InstrN],OurType)
 
-data Cursor = Cursor {getPos:: Pos, getDirection::Direction, getStatus::CursorStatus }
+data Cursor = Cursor {getPosition:: Pos, getDirection::Direction, getStatus::CursorStatus }
 
 data Scope = Scope {getList::[VarDescript]}
 
@@ -38,7 +40,7 @@ data OurState = OurState {getSymTable::SymTable, getCursor::Cursor,getFunDec::Fu
 
 data FuncDec = FuncDec { getDec:: [FuncDescript]}
 
-type RunMonad a = StateT OurState (WriterT [Int] IO ) a
+type RunMonad a = StateT OurState (WriterT [Segment] IO ) a
 
 addToSymTable :: VarDescript -> RunMonad ()
 addToSymTable tuple = do
@@ -50,8 +52,11 @@ addToSymTable tuple = do
         newSymTable = oldSymTable { getScopes = newScopeList }
     put $ oldState { getSymTable = newSymTable }
 
---fst' :: VarDescript -> String
+fst' :: (String,t,t1,t2) -> String
 fst' (s,_,_,_) = s
+
+toRadian :: Double -> Double
+toRadian num = num*pi/180 
 
 lookInList :: String -> [VarDescript] -> Maybe VarDescript
 lookInList s l = find ((==s).fst') l
@@ -70,12 +75,30 @@ newScope :: RunMonad ()
 newScope = do
     oldState <- get
     let oldSymTable = getSymTable oldState
-        oldScopes = getScopes oldSymTable
+        oldScopes = getScopes oldSymTable   
         newSymTable = oldSymTable {getScopes = (Scope []):oldScopes}
     put $ oldState {getSymTable = newSymTable}
 
- --CAMBIAR VALOR SYMTABLE FALTA LEER
+changeValInScope :: [VarDescript] -> String -> Val -> (Bool,[VarDescript])
+changeValInScope scope string newVal = 
+    foldl changeFun (False,[]) scope
+        where changeFun (changed,list) (name,val,mutable,typeV) = case name==string of 
+                        True -> (True,(name,newVal,mutable,typeV):list) 
+                        _ -> (changed,(name,val,mutable,typeV):list) 
 
+changeValInSymTable :: (String,Val) -> RunMonad ()
+changeValInSymTable (string,newVal) = do
+    oldState <- get
+    let oldSymTable = getSymTable oldState
+        newScopes = snd $ foldl fun (False,[]) (getScopes oldSymTable)
+        newSymTable = oldSymTable {getScopes = reverse newScopes}
+    put $ oldState {getSymTable = newSymTable}
+    where fun (changed,scopes) list = case changed of
+                                        True -> (changed,list:scopes)
+                                        _ -> case (changeValInScope (getList list) string newVal) of
+                                                (True,changedScope) -> (True,Scope changedScope:scopes)
+                                                (False,equalScope) ->  (changed,Scope equalScope:scopes)
+                                    
 getSymTable' :: RunMonad (SymTable)
 getSymTable' = do
     getSymTable <$> get
@@ -86,9 +109,9 @@ createSymTable = do
     put $ oldState { getSymTable = SymTable $ [] }
 
 setSymTable :: SymTable -> RunMonad ()
-setSymTable oldSymTable = do
+setSymTable newSymTable = do
     oldState <- get
-    put $ oldState { getSymTable = oldSymTable }
+    put $ oldState { getSymTable = newSymTable }
 
 ---------------------------------------- FUNDEC -----------------------------------------
 
@@ -119,5 +142,57 @@ offCursor status = do
     let oldCursor = getCursor oldState
         newCursor = oldCursor { getStatus = Off }
     put $ oldState { getCursor = newCursor }
+
+forward :: Int -> RunMonad ()
+forward steps = do
+    oldState <- get
+    let cursor = getCursor oldState
+        (x,y) = getPosition cursor
+        direc = getDirection cursor
+        direction = toRadian direction 
+    case (getStatus cursor) of 
+        Off -> return ()
+        On -> tell [((x,y),(cos direction + x,sin direction + y))]
+    setPosition (x+ cos direction,y+ sin direction)
+
+
+
+backward :: Int -> RunMonad ()
+backward steps = do
+    oldState <- get
+    let cursor = getCursor oldState
+        (x,y) = getPosition cursor
+        direc = getDirection cursor
+        direction = toRadian direction 
+    case (getStatus cursor) of 
+        Off -> return ()
+        On -> tell [((x,y),(x - cos direction,y - sin direction))]
+    setPosition (x- cos direction,y- sin direction)
+
+setPosition :: Pos -> RunMonad()
+setPosition (x,y) = do
+    oldState <- get
+    let oldCursor = getCursor oldState
+        newCursor = oldCursor { getPosition = (x,y) }
+    put $ oldState { getCursor = newCursor } 
+
+
+rotater :: Double -> RunMonad ()
+rotater deegre = do
+    oldState <- get
+    let oldCursor = getCursor oldState
+        oldDirection = getDirection oldCursor 
+        newCursor = oldCursor {getDirection = oldDirection - deegre}
+    put $ oldState { getCursor = newCursor }
+
+rotatel :: Double -> RunMonad ()
+rotatel deegre = do
+    oldState <- get
+    let oldCursor = getCursor oldState
+        oldDirection = getDirection oldCursor 
+        newCursor = oldCursor {getDirection = oldDirection + deegre}
+    put $ oldState { getCursor = newCursor }
+
+
 
 runMonad f a = runWriterT (runStateT f a)
