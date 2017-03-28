@@ -4,6 +4,7 @@ module RunAST where
 import RunMonad
 import OurType
 import AST
+import Control.Monad
 
 
 ----------------------------------------------------------
@@ -43,9 +44,9 @@ runConstrN (LDN l) = do --Construccion de Lista de Declaracion de variables
 ----------------------------------------------------------
 runFuncDefN :: FuncDefN -> RunMonad ()
 runFuncDefN funcDefN = do
-    let (funId, paramList, instrListN, lineNum, retType) = case funcDefN of
-            DFN s p i (ln,_) -> (s,(map (\(x,y) -> (y, typeNConvert x))).listLPN $ p,i,ln, Void)
-            RDFN s p ret i (ln,_) -> (s,(map (\(x,y) -> (y, typeNConvert x))).listLPN $ p,i,ln, typeNConvert ret)
+    let (funId, paramList, instrListN, retType) = case funcDefN of
+            DFN s p i _ -> (s,(map (\(x,y) -> (y, typeNConvert x))).listLPN $ p,i, Void)
+            RDFN s p ret i _ -> (s,(map (\(x,y) -> (y, typeNConvert x))).listLPN $ p,i, typeNConvert ret)
 
     addToFundec (funId, map fst paramList, listLIN instrListN, retType)
 
@@ -53,9 +54,9 @@ runFuncDefN funcDefN = do
 ----------------------------------------------------------
 -- runInstrListN ---------------------------------------
 ----------------------------------------------------------
-runInstrListN :: InstrListN -> RunMonad ()
+runInstrListN :: InstrListN -> RunMonad (Maybe Val)
 runInstrListN (LIN instrList) = do
-    mapM runInstrN instrList
+    mapM runInstrN instrList -- NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO RETURNSSSSSS
 
 
 ----------------------------------------------------------
@@ -63,19 +64,92 @@ runInstrListN (LIN instrList) = do
 ----------------------------------------------------------
 repeatCycle n lin = do
     if n > 0
-        then runInstrListN lin
-        else return ()
+        then do ret <- runInstrListN lin
+                case ret of
+                    Nothing -> repeatCycle (n-1) lin
+                    Just x -> return $ Just x
+        else return Nothing
 
-runInstrN :: InstrN -> RunMonad ()
+forCycle s it to by lin = do
+    if it <= to
+        then do
+            ret <- runInstrListN lin
+            case ret of
+                Nothing -> do
+                    changeValInSymTable (s, NumberVal (it+1))
+                    forCycle s (it+1) to by lin
+                Just x -> return $ Just x
+        else return Nothing
+
+whileCycle expn lin = do
+    BooleanVal b <- runExpN expn
+    if b
+        then do 
+            ret <- runInstrListN lin
+            case ret of
+                Nothing -> whileCycle expn lin
+                Just x -> return $ Just x
+        else return Nothing
+
+runInstrN :: InstrN -> RunMonad (Maybe Val)
 runInstrN (WithDoN ldn lin _) = do
     newScope
     runConstrN ldn
-    runInstrListN lin
+    ret <- runInstrListN lin
     removeLastScope
+    return ret 
 
 runInstrN (RepeatN expn lin _) = do
     NumberVal n <- runExpN expn
     repeatCycle n lin
-
--- runInstrN (AssignN s expn _) = do
     
+
+runInstrN (AssignN s expn _) = do
+    Just (_,_,mutable,_) <- lookInSymTable s
+    when (not mutable) $ error ":( no mutable"
+    val <- runExpN expn
+    changeValInSymTable (s, val)
+    return Nothing
+
+runInstrN (ForN s expn1 expn2 lin p) = do
+    runInstrN $ ForByN s expn1 expn2 (NumberLiteralN "1") lin p
+
+runInstrN (ForByN s expn1 expn2 expn3 lin _) = do
+    NumberVal e1 <- runExpN expn1
+    NumberVal e2 <- runExpN expn2
+    NumberVal e3 <- runExpN expn3
+    newScope
+    addToSymTable (s,NumberVal e1,False,Number)
+    ret <- forCycle s e1 e2 e3 lin
+    removeLastScope
+    return ret
+
+runInstrN (IfThenN expn lin _) = do
+    BooleanVal b <- runExpN expn
+    if (b == True) 
+        then runInstrListN lin
+        else return Nothing
+
+runInstrN (IfThenElseN expn lin1 lin2 _) = do
+    BooleanVal b <- runExpN expn
+    if (b == True) 
+        then runInstrListN lin1
+        else runInstrListN lin2
+
+runInstrN (WhileN expn lin _) = do
+    whileCycle expn lin
+
+checkInstrN (WriteN wordList _) = return Nothing
+ ---------- FALTAAAAAAAAA
+
+checkInstrN (WritelnN wordList _) = return Nothing
+ ---------- FALTAAAAAAAAA
+
+checkInstrN (ReadN s _) = return Nothing
+ ---------- FALTAAAAAAAAA
+
+checkInstrN (ReturnN expn _) = return $ Just $ runExpN expn
+
+checkInstrN (ExprN expn) = do
+    runExpN expn
+    return Nothing

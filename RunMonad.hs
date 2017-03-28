@@ -6,6 +6,7 @@
 module RunMonad where
 
 import AST
+import OurType
 import Control.Monad.State
 import Control.Monad.Writer
 import Control.Monad
@@ -17,8 +18,6 @@ import Data.List
 data CursorStatus = On | Off deriving (Show,Eq)
 
 data Val = BooleanVal Bool | NumberVal Double deriving (Show,Eq)
-
-data OurType = Number | Boolean | Void deriving Eq
 
 type Pos = (Double, Double)
 
