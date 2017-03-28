@@ -5,16 +5,17 @@ import RunMonad
 import OurType
 import AST
 import Control.Monad
-
+import Control.Applicative
 
 ----------------------------------------------------------
 -- runConstrN ------------------------------------------
 ----------------------------------------------------------
 runConstrN :: ConstrN -> RunMonad ()
-runConstrN PN ldfn iln = do --Construccion de Programa
+runConstrN (PN ldfn iln) = do --Construccion de Programa
     --declarar funciones predefinidas
     runConstrN ldfn
-    runInstrListN iln
+    _ <- runInstrListN iln
+    return ()
 
 runConstrN (LDFN l) = do --Construccion de Lista de Definicion de Funciones
     mapM_ runFuncDefN l
@@ -31,13 +32,15 @@ runConstrN (LDN l) = do --Construccion de Lista de Declaracion de variables
             let (s, me) = case varN of
                     (VarN st) -> (st, Nothing)
                     (VarValN st e) -> (st, Just e)
-                val = case me of
-                    Just e -> runExpN e
-                    Nothing -> case t of
-                        Boolean -> BooleanVal False
-                        Number -> NumberVal 0
-            addToSymTable (s,val,False,t)
-
+            case me of
+                Just e -> do
+                    val <- runExpN e
+                    addToSymTable (s,val,False,t)
+                Nothing -> do
+                    let val = case t of
+                            Boolean -> BooleanVal False
+                            Number -> NumberVal 0
+                    addToSymTable (s,val,True,t)
 
 ----------------------------------------------------------
 -- runFuncDefN -----------------------------------------
@@ -56,8 +59,8 @@ runFuncDefN funcDefN = do
 ----------------------------------------------------------
 runInstrListN :: InstrListN -> RunMonad (Maybe Val)
 runInstrListN (LIN instrList) = do
-    mapM runInstrN instrList -- NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO RETURNSSSSSS
-
+    mapM_ runInstrN instrList -- NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO RETURNSSSSSS
+    return Nothing
 
 ----------------------------------------------------------
 -- runInstrN -------------------------------------------
@@ -105,14 +108,14 @@ runInstrN (RepeatN expn lin _) = do
     
 
 runInstrN (AssignN s expn _) = do
-    Just (_,_,mutable,_) <- lookInSymTable s
+    (_,_,mutable,_) <- lookInSymTable s
     when (not mutable) $ error ":( no mutable"
     val <- runExpN expn
     changeValInSymTable (s, val)
     return Nothing
 
 runInstrN (ForN s expn1 expn2 lin p) = do
-    runInstrN $ ForByN s expn1 expn2 (NumberLiteralN "1") lin p
+    runInstrN $ ForByN s expn1 expn2 (NumberLiteralN "1" p) lin p
 
 runInstrN (ForByN s expn1 expn2 expn3 lin _) = do
     NumberVal e1 <- runExpN expn1
@@ -153,3 +156,42 @@ checkInstrN (ReturnN expn _) = return $ Just $ runExpN expn
 checkInstrN (ExprN expn) = do
     runExpN expn
     return Nothing
+
+
+
+
+----------------------------------------------------------
+-- runExpN ------------------------------------------
+----------------------------------------------------------
+
+runExpN :: ExpN -> RunMonad Val
+
+runExpN (IdN s _) = do thrd' <$> lookInSymTable s
+
+runExpN (TrueN _) = return (BooleanVal True)
+
+runExpN (FalseN _) = return (BooleanVal False)
+    
+runExpN (ParN expn _) = runExpN expn
+
+runExpN (ComparN exp0 s exp1 _) = do
+    valExp0 <- runExpN exp0
+    valExp1 <- runExpN exp1
+    case (valExp0,valExp1) of 
+        (NumberVal ex0,NumberVal ex1) ->
+            case s of
+                "<" -> return $ BooleanVal (ex0 < ex1)
+                ">" -> return $ BooleanVal (ex0 > ex1)
+                "<=" -> return $ BooleanVal (ex0 <= ex1)
+                ">=" -> return $ BooleanVal (ex0 >= ex1)
+                "==" -> return $ BooleanVal (ex0 == ex1)
+                _ -> return $ BooleanVal (ex0 /= ex1)
+        (BooleanVal ex0,BooleanVal ex1) ->
+            case s of
+                "==" -> return $ BooleanVal (ex0 == ex1)
+                _ -> return $ BooleanVal (ex0 /= ex1)
+
+runExpN (NotN expn _) = do
+    BooleanVal exp0 <- runExpN expn
+    return $ BooleanVal (not exp0)
+

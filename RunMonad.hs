@@ -14,6 +14,7 @@ import Control.Applicative
 import Data.Monoid
 import Data.Either
 import Data.List
+import Data.Maybe   
 
 data CursorStatus = On | Off deriving (Show,Eq)
 
@@ -54,14 +55,17 @@ addToSymTable tuple = do
 fst' :: (String,t,t1,t2) -> String
 fst' (s,_,_,_) = s
 
+thrd' :: (t,Val,t1,t2) -> Val
+thrd' (_,v,_,_) = v
+
 toRadian :: Double -> Double
 toRadian num = num*pi/180 
 
 lookInList :: String -> [VarDescript] -> Maybe VarDescript
 lookInList s l = find ((==s).fst') l
 
-lookInSymTable :: String -> RunMonad (Maybe VarDescript)
-lookInSymTable s = msum . map (lookInList s) . (map getList).getScopes.getSymTable <$> get
+lookInSymTable :: String -> RunMonad (VarDescript)
+lookInSymTable s = fromJust.msum . map (lookInList s) . (map getList).getScopes.getSymTable <$> get
 
 removeLastScope :: RunMonad ()
 removeLastScope = do
