@@ -10,7 +10,7 @@ import AST
 -- runConstrN ------------------------------------------
 ----------------------------------------------------------
 runConstrN :: ConstrN -> RunMonad ()
-runConstrN PN ldfn iln = do --Construccion de Programa
+runConstrN (PN ldfn iln) = do --Construccion de Programa
     --declarar funciones predefinidas
     runConstrN ldfn
     runInstrListN iln
@@ -30,13 +30,15 @@ runConstrN (LDN l) = do --Construccion de Lista de Declaracion de variables
             let (s, me) = case varN of
                     (VarN st) -> (st, Nothing)
                     (VarValN st e) -> (st, Just e)
-                val = case me of
-                    Just e -> runExpN e
-                    Nothing -> case t of
-                        Boolean -> BooleanVal False
-                        Number -> NumberVal 0
-            addToSymTable (s,val,False,t)
-
+            case me of
+                Just e -> do
+                    val <- runExpN e
+                    addToSymTable (s,val,False,t)
+                Nothing -> do
+                    let val = case t of
+                            Boolean -> BooleanVal False
+                            Number -> NumberVal 0
+                    addToSymTable (s,val,True,t)
 
 ----------------------------------------------------------
 -- runFuncDefN -----------------------------------------
@@ -55,7 +57,7 @@ runFuncDefN funcDefN = do
 ----------------------------------------------------------
 runInstrListN :: InstrListN -> RunMonad ()
 runInstrListN (LIN instrList) = do
-    mapM runInstrN instrList
+    mapM_ runInstrN instrList
 
 
 ----------------------------------------------------------
@@ -79,3 +81,42 @@ runInstrN (RepeatN expn lin _) = do
 
 -- runInstrN (AssignN s expn _) = do
     
+
+
+
+----------------------------------------------------------
+-- runExpN ------------------------------------------
+----------------------------------------------------------
+
+runExpN :: ExpN -> RunMonad Val
+
+runExpN (IdN s _) = do thrd' <$> lookInSymTable s
+
+runExpN (TrueN _) = return (BooleanVal True)
+
+runExpN (FalseN _) = return (BooleanVal False)
+    
+runExpN (ParN expn _) = runExpN expn
+
+runExpN (ComparN exp0 s exp1 _) = do
+    valExp0 <- runExpN exp0
+    valExp1 <- runExpN exp1
+    case (valExp0,valExp1) of 
+        (NumberVal ex0,NumberVal ex1) ->
+            case s of
+                "<" -> return $ BooleanVal (ex0 < ex1)
+                ">" -> return $ BooleanVal (ex0 > ex1)
+                "<=" -> return $ BooleanVal (ex0 <= ex1)
+                ">=" -> return $ BooleanVal (ex0 >= ex1)
+                "==" -> return $ BooleanVal (ex0 == ex1)
+                _ -> return $ BooleanVal (ex0 /= ex1)
+        (BooleanVal ex0,BooleanVal ex1) ->
+            case s of
+                "==" -> return $ BooleanVal (ex0 == ex1)
+                _ -> return $ BooleanVal (ex0 /= ex1)
+
+runExpN (NotN expn _) = do
+    BooleanVal exp0 <- runExpN expn
+    return $ BooleanVal (not exp0)
+
+
