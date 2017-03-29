@@ -7,6 +7,7 @@ import AST
 import Control.Monad
 import Control.Applicative
 import Data.Maybe  
+import Data.Fixed
 
 ----------------------------------------------------------
 -- runConstrN ------------------------------------------
@@ -256,14 +257,28 @@ runExpN (FuncN s explist _) = do
         Just val -> return val
         _ -> return VoidVal 
 
-runExpN (MinusN exp _) = do
-    NumberVal ex <- runExpN exp
+runExpN (MinusN exp0 _) = do
+    NumberVal ex <- runExpN exp0
     return $ NumberVal (-ex)
 
---runExpN (AritN exp0 s exp1) = do
+runExpN (AritN exp0 s exp1 _) = do
+    NumberVal ex0 <- runExpN exp0
+    NumberVal ex1 <- runExpN exp1
+    case s of 
+        "+"   -> return $ NumberVal (ex0+ex1)
+        "-"   -> return $ NumberVal (ex0-ex1)
+        "*"   -> return $ NumberVal (ex0*ex1)
+        "div" -> if (ex1==0) then error "Division entre cero" 
+                 else return $ NumberVal (fromIntegral (div (floor ex0) (floor ex1)) :: Double)
+        "/"   -> if (ex1==0) then error "Division entre cero" 
+                 else return $ NumberVal (ex0 / ex1)
+        "mod" -> if (ex1==0) then error "Division entre cero" 
+                 else return $ NumberVal (fromIntegral (mod (floor ex0) (floor ex1)) :: Double)
+        "%"   -> if (ex1==0) then error "Division entre cero" 
+                 else return $ NumberVal (mod' ex0 ex1)
 
-runExpN (NumberLiteralN exp _) = do 
-    let num = read exp :: Double
+runExpN (NumberLiteralN exp0 _) = do 
+    let num = read exp0 :: Double
     return $ NumberVal num
 
 fromVal val = case val of
