@@ -24,11 +24,10 @@ import Graphics.Rendering.OpenGL.GL.PixelRectangles.PixelStorage
 
 import Data.Bits
 
-display :: [Segment] -> IO ()
-display points = do
-    putStrLn "hola"
+display :: [Segment] -> Double -> Double -> IO ()
+display points ww hh = do
     clear [ ColorBuffer ]
-    let pointsToReal = map (\((x,y),(x1,y1))-> ((realToFrac x,realToFrac y),(realToFrac x1,realToFrac y1))) points
+    let pointsToReal = map (\((x,y),(x1,y1))-> ((realToFrac $ x/ww,realToFrac $ y/hh),(realToFrac $ x1/ww,realToFrac $ y1/hh))) points
     renderPrimitive Lines $ do
         mapM_ createVertex (pointsToReal :: [((GLfloat, GLfloat),(GLfloat, GLfloat))])
     -- escribir archivo
@@ -50,24 +49,22 @@ main = do
                         case getContextError (checkConstrN ast) emptyContextState of
                             Nothing -> do
                                 result <- runRunMonad (runConstrN ast) ourEmptyState
-                                putStrLn "holaaaaaaaaaaaaaaaaaaaaaa" --DEBUG
-                                print result
-                                --let --segments = snd result
-                                    --state = snd $ fst result
-                                    --myWidth = floor $ max (getMaxRight state) (-(getMaxLeft state)) + 10
-                                    --myHeight = floor $ max (getMaxUp state) (-(getMaxDown state)) + 10
+                                let segments = snd result
+                                    state = snd $ fst result
+                                    xx = max (getMaxRight state) (-(getMaxLeft state)) + 10
+                                    yy = max (getMaxUp state) (-(getMaxDown state)) + 10
                                 --print segments -- DEBUG
                                 --print myWidth --DEBUG
                                 --print myHeight --DEBUG
 
-                                -- _ <- getArgsAndInitialize
-                                -- initialWindowSize $= Size myWidth myHeight
-                                -- initialWindowPosition $= Position 400 400
-                                -- initialDisplayMode $= [DoubleBuffered,RGBAMode]
-                                -- createWindow "retina AGN"
-                                -- drawBuffer $= FrontAndBackBuffers
-                                -- displayCallback $= display segments
-                                -- mainLoop
+                                _ <- getArgsAndInitialize
+                                initialWindowSize $= Size (floor xx) (floor yy)
+                                initialWindowPosition $= Position 400 400
+                                initialDisplayMode $= [DoubleBuffered,RGBAMode]
+                                createWindow "retina AGN"
+                                drawBuffer $= FrontAndBackBuffers
+                                displayCallback $= display segments xx yy
+                                mainLoop
                                 return ()
                             Just e -> error e
         Left e -> putStrLn e

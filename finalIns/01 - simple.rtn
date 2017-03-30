@@ -1,4 +1,6 @@
 program 
     openeye();
-    forward(1);
+    forward(120);
+    rotatel(90);
+    forward(120);
 end;

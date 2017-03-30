@@ -160,16 +160,17 @@ forward steps = do
     oldState <- get
     let cursor = getCursor oldState
         (x,y) = getPosition cursor
+        (nx, ny) = (x+steps*cos direction, y+steps*sin direction)
         direc = getDirection cursor
         direction = toRadian direc
-        down = (getMaxDown oldState) `min` y `min` (y+steps*sin direction)
-        up = (getMaxUp oldState) `max` y `max` (y+steps*sin direction)
-        left = getMaxLeft oldState `min` x `min` (x+steps*cos direction)
-        right = getMaxRight oldState `max` x `max` (x+steps*cos direction)
+        down = (getMaxDown oldState) `min` y `min` (ny)
+        up = (getMaxUp oldState) `max` y `max` (ny)
+        left = getMaxLeft oldState `min` x `min` (nx)
+        right = getMaxRight oldState `max` x `max` (nx)
     case (getStatus cursor) of 
         Off -> return ()
         On -> do
-            tell [((x,y),(steps*cos direction + x,steps*sin direction + y))]
+            tell [((x,y),(nx, ny))]
             put $ oldState { getMaxRight = right, getMaxLeft = left, getMaxUp = up, getMaxDown = down }
     setPosition (x+ steps*cos direction,y+ steps*sin direction)
 
@@ -178,16 +179,17 @@ backward steps = do
     oldState <- get
     let cursor = getCursor oldState
         (x,y) = getPosition cursor
+        (nx, ny) = (x-steps*cos direction, y-steps*sin direction)
         direc = getDirection cursor
         direction = toRadian direc
-        down = (getMaxDown oldState) `min` y `min` (y-steps*sin direction)
-        up = (getMaxUp oldState) `max` y `max` (y-steps*sin direction)
-        left = getMaxLeft oldState `min` x `min` (x-steps*cos direction)
-        right = getMaxRight oldState `max` x `max` (x-steps*cos direction)
+        down = (getMaxDown oldState) `min` y `min` (ny)
+        up = (getMaxUp oldState) `max` y `max` (ny)
+        left = getMaxLeft oldState `min` x `min` (nx)
+        right = getMaxRight oldState `max` x `max` (nx)
     case (getStatus cursor) of 
         Off -> return ()
         On -> do
-            tell [((x,y),(x - steps*cos direction,y - steps*sin direction))]
+            tell [((x,y),(nx,ny))]
             put $ oldState { getMaxRight = right, getMaxLeft = left, getMaxUp = up, getMaxDown = down }
     setPosition (x- steps*cos direction,y- steps*sin direction)
 
