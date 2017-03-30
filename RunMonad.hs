@@ -42,7 +42,7 @@ data SymTable = SymTable {getScopes::[Scope]} deriving Show
 
 data OurState = OurState {getSymTable::SymTable, getCursor::Cursor,getFunDec::FuncDec, getMaxDown::Double, getMaxUp::Double, getMaxRight::Double,getMaxLeft::Double} deriving Show
 
-ourEmptyState = OurState (SymTable []) (Cursor (0,0) 0 Off) (FuncDec []) 0 0 0 0
+ourEmptyState = OurState (SymTable []) (Cursor (0,0) 0 On) (FuncDec []) 0 0 0 0
 
 data FuncDec = FuncDec { getDec:: [FuncDescript]} deriving Show
 
