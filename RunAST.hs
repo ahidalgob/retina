@@ -314,4 +314,4 @@ runExpN (NumberLiteralN exp0 _) = do
 
 fromNumberVal val = case val of
     NumberVal x -> x
-    _ -> 1.0 --Nunca pasara xD (Esperemos xD)
+    _ -> 42.0 --Nunca pasara xD (Esperemos xD)

@@ -48,6 +48,11 @@ data FuncDec = FuncDec { getDec:: [FuncDescript]}
 
 type RunMonad a = StateT OurState (WriterT [Segment] IO ) a
 
+runRunMonad :: RunMonad a -> OurState -> IO (((a,OurState),[Segment]))
+runRunMonad f a = runWriterT (runStateT f a)
+
+getLogPoints f a = do snd <$> runRunMonad f a
+
 addToSymTable :: VarDescript -> RunMonad ()
 addToSymTable tuple = do
     oldState <- get
