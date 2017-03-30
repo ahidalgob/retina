@@ -34,24 +34,22 @@ type VarDescript = (String,Val,Bool,OurType)
 
 type FuncDescript = (String,[String],[InstrN],OurType)
 
-data Cursor = Cursor {getPosition:: Pos, getDirection::Direction, getStatus::CursorStatus }
+data Cursor = Cursor {getPosition:: Pos, getDirection::Direction, getStatus::CursorStatus } deriving Show
 
-data Scope = Scope {getList::[VarDescript]}
+data Scope = Scope {getList::[VarDescript]} deriving Show
 
-data SymTable = SymTable {getScopes::[Scope]}
+data SymTable = SymTable {getScopes::[Scope]} deriving Show
 
-data OurState = OurState {getSymTable::SymTable, getCursor::Cursor,getFunDec::FuncDec, getMaxDown::Double, getMaxUp::Double, getMaxRight::Double,getMaxLeft::Double}
+data OurState = OurState {getSymTable::SymTable, getCursor::Cursor,getFunDec::FuncDec, getMaxDown::Double, getMaxUp::Double, getMaxRight::Double,getMaxLeft::Double} deriving Show
 
 ourEmptyState = OurState (SymTable []) (Cursor (0,0) 0 Off) (FuncDec []) 0 0 0 0
 
-data FuncDec = FuncDec { getDec:: [FuncDescript]}
+data FuncDec = FuncDec { getDec:: [FuncDescript]} deriving Show
 
 type RunMonad a = StateT OurState (WriterT [Segment] IO ) a
 
 runRunMonad :: RunMonad a -> OurState -> IO (((a,OurState),[Segment]))
 runRunMonad f a = runWriterT (runStateT f a)
-
-getLogPoints f a = do snd <$> runRunMonad f a
 
 addToSymTable :: VarDescript -> RunMonad ()
 addToSymTable tuple = do
@@ -170,8 +168,9 @@ forward steps = do
         right = getMaxRight oldState `max` x `max` (x+cos direction)
     case (getStatus cursor) of 
         Off -> return ()
-        On -> tell [((x,y),(cos direction + x,sin direction + y))]
-    put $ oldState { getMaxRight = right, getMaxLeft = left, getMaxUp = up, getMaxDown = down }
+        On -> do
+            tell [((x,y),(cos direction + x,sin direction + y))]
+            put $ oldState { getMaxRight = right, getMaxLeft = left, getMaxUp = up, getMaxDown = down }
     setPosition (x+ cos direction,y+ sin direction)
 
 backward :: Double -> RunMonad ()
@@ -187,8 +186,9 @@ backward steps = do
         right = getMaxRight oldState `max` x `max` (x+cos direction)
     case (getStatus cursor) of 
         Off -> return ()
-        On -> tell [((x,y),(x - cos direction,y - sin direction))]
-    put $ oldState { getMaxRight = right, getMaxLeft = left, getMaxUp = up, getMaxDown = down }
+        On -> do
+            tell [((x,y),(x - cos direction,y - sin direction))]
+            put $ oldState { getMaxRight = right, getMaxLeft = left, getMaxUp = up, getMaxDown = down }
     setPosition (x- cos direction,y- sin direction)
 
 setPosition :: Pos -> RunMonad()

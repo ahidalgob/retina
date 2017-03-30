@@ -48,9 +48,16 @@ type OurContextMonad a = StateT OurContextState (WriterT OurLog (Either OurError
 runOurContextMonad :: OurContextMonad a -> OurContextState -> Either OurError ((a, OurContextState), OurLog)
 runOurContextMonad f a = runWriterT (runStateT f a)
 
-getLog f a = show $ snd $ getRight $ runOurContextMonad f a `catchError` (\(OurError pos s) -> error $ "\nError en linea "++show pos++":\n"++s)
+getContextLog :: OurContextMonad a -> OurContextState -> String
+getContextLog f a = show $ snd $ getRight $ runOurContextMonad f a `catchError` (\(OurError pos s) -> error $ "\nError en linea "++show pos++":\n"++s)
     where
         getRight (Right x) = x
+
+getContextError :: OurContextMonad a -> OurContextState -> Maybe String
+getContextError f a = do
+    case runOurContextMonad f a of
+        Left (OurError pos s) -> return $ "\nError en linea "++show pos++":\n"++s
+        Right _ -> Nothing
 
 
 lookInList :: String -> [(String, OurType)] -> Maybe OurType

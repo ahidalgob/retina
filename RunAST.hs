@@ -177,7 +177,7 @@ runInstrN (ReadN s _) = do
                 Nothing -> cantReadError s t
     return Nothing
     where
-        cantReadError :: String -> OurType -> OurType ()
+        cantReadError :: String -> OurType -> RunMonad ()
         cantReadError s t = error $ "Runtime error: No se pudo leer variable "++s++" de tipo "++show t++" desde la entrada :("
 
 runInstrN (ReturnN expn _) = Just <$> runExpN expn

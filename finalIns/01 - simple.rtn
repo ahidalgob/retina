@@ -1,0 +1,4 @@
+program 
+    openeye();
+    forward(1);
+end;
