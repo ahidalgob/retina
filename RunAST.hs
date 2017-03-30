@@ -6,8 +6,10 @@ import OurType
 import AST
 import Control.Monad
 import Control.Applicative
-import Data.Maybe  
+import Data.Maybe (fromJust)
 import Data.Fixed
+import Text.Read (readMaybe)
+import Control.Monad.IO.Class (liftIO)
 
 ----------------------------------------------------------
 -- runConstrN ------------------------------------------
@@ -37,7 +39,7 @@ runConstrN (LDN l) = do --Construccion de Lista de Declaracion de variables
             case me of
                 Just e -> do
                     val <- runExpN e
-                    addToSymTable (s,val,False,t)
+                    addToSymTable (s,val,True,t)
                 Nothing -> do
                     let val = case t of
                             Boolean -> BooleanVal False
@@ -81,8 +83,8 @@ forCycle s it to by lin = do
             ret <- runInstrListN lin
             case ret of
                 Nothing -> do
-                    changeValInSymTable (s, NumberVal (it+1))
-                    forCycle s (it+1) to by lin
+                    changeValInSymTable (s, NumberVal (it+by))
+                    forCycle s (it+by) to by lin
                 Just x -> return $ Just x
         else return Nothing
 
@@ -105,13 +107,13 @@ runInstrN (WithDoN ldn lin _) = do
     return ret 
 
 runInstrN (RepeatN expn lin _) = do
-    NumberVal n <- runExpN expn
+    NumberVal n <- runExpN expn  --------- PISO DE n?
     repeatCycle n lin
     
 
 runInstrN (AssignN s expn _) = do
     (_,_,mutable,_) <- lookInSymTable s
-    when (not mutable) $ error ":( no mutable"
+    when (not mutable) $ error $ "Runtime Error: la variable "++s++" no es mutable :("
     val <- runExpN expn
     changeValInSymTable (s, val)
     return Nothing
@@ -120,9 +122,9 @@ runInstrN (ForN s expn1 expn2 lin p) = do
     runInstrN $ ForByN s expn1 expn2 (NumberLiteralN "1" p) lin p
 
 runInstrN (ForByN s expn1 expn2 expn3 lin _) = do
-    NumberVal e1 <- runExpN expn1
-    NumberVal e2 <- runExpN expn2
-    NumberVal e3 <- runExpN expn3
+    NumberVal e1 <- runExpN expn1     --------------- PISO ?????
+    NumberVal e2 <- runExpN expn2     --------------- PISO ?????
+    NumberVal e3 <- runExpN expn3     --------------- PISO ?????
     newScope
     addToSymTable (s,NumberVal e1,False,Number)
     ret <- forCycle s e1 e2 e3 lin
@@ -144,14 +146,36 @@ runInstrN (IfThenElseN expn lin1 lin2 _) = do
 runInstrN (WhileN expn lin _) = do
     whileCycle expn lin
 
-runInstrN (WriteN wordList _) = return Nothing
+runInstrN (WriteN wordList _) = do
+    mapM_ (myPutStr) wordList
+    return Nothing
+    where
+        myPutStr :: WordN -> RunMonad ()
+        myPutStr (PWEN exp) = runExpN exp >>= (liftIO . putStr . show)
+        myPutStr (PWSN s) = liftIO $ putStr s
     
 
-runInstrN (WritelnN wordList _) = return Nothing
- ---------- FALTAAAAAAAAA
+runInstrN (WritelnN wordList p) = do
+    runInstrN $ WriteN wordList p
+    liftIO $ putStrLn ""
+    return Nothing
 
-runInstrN (ReadN s _) = return Nothing
- ---------- FALTAAAAAAAAA
+runInstrN (ReadN s _) = do
+    (s,_,mutable,t) <- lookInSymTable s
+    when (not mutable) $ error $ "Runtime Error: la variable "++s++" no es mutable :("
+    input <- liftIO $ getLine
+    case t of
+        Number -> do
+            let nval = readMaybe input :: Maybe Double
+            case nval of
+                Just d -> changeValInSymTable (s, NumberVal d)
+                Nothing -> error $ "Runtime error: No se pudo leer variable "++s++" de tipo "++show t++" desde la entrada :("
+        Boolean -> do
+            let nval = readMaybe input :: Maybe Bool
+            case nval of
+                Just d -> changeValInSymTable (s, BooleanVal d)
+                Nothing -> error $ "Runtime error: No se pudo leer variable "++s++" de tipo "++show t++" desde la entrada :("
+    return Nothing
 
 runInstrN (ReturnN expn _) = Just <$> runExpN expn
 
@@ -221,41 +245,48 @@ runExpN (FuncN "closeeye" explist _) = do
 
 runExpN (FuncN "forward" explist _) = do
     listEx <- mapM runExpN (listLEN explist)
-    forward $ fromVal $ head listEx
+    forward $ fromNumberVal $ head listEx
     return VoidVal
 
 runExpN (FuncN "backward" explist _) = do
     listEx <- mapM runExpN (listLEN explist)
-    backward $ fromVal $ head listEx
+    backward $ fromNumberVal $ head listEx
     return VoidVal
 
 runExpN (FuncN "rotatel" explist _) = do
     listEx <- mapM runExpN (listLEN explist)
-    rotatel $ fromVal $ head listEx
+    rotatel $ fromNumberVal $ head listEx
     return VoidVal
 
 runExpN (FuncN "rotater" explist _) = do
     listEx <- mapM runExpN (listLEN explist)
-    rotater $ fromVal $ head listEx
+    rotater $ fromNumberVal $ head listEx
     return VoidVal
 
 runExpN (FuncN "setposition" explist _) = do
     listEx <- mapM runExpN (listLEN explist)
-    setPosition $ (fromVal $ listEx !! 0,fromVal $ listEx !! 1)
+    setPosition $ (fromNumberVal $ listEx !! 0,fromNumberVal $ listEx !! 1)
     return VoidVal
 
 runExpN (FuncN s explist _) = do
     oldSymTable <- getSymTable'
     listEx <- mapM runExpN (listLEN explist)
     createSymTable
-    (_,namesVar,listInst,_) <- findFunDec s
-    let variables = foldr (\(name,value) acc-> (name,value,False,Number):acc) [] (zip namesVar listEx) 
+    (_,namesVar,listInst,retType) <- findFunDec s
+    let variables = foldr (\(name,value) acc-> (name,value,True,getType value):acc) [] (zip namesVar listEx)
     mapM_ addToSymTable variables
     posiblesVal <- mapM runInstrN listInst
     setSymTable oldSymTable
     case msum posiblesVal of
         Just val -> return val
-        _ -> return VoidVal 
+        _ -> case retType of
+            Void -> return VoidVal
+            _ -> error $ "Runtime Error: Funcion " ++ s ++ " (_,_,mutable,_) <- lookInSymTable stermino sin alcanzar un return :("
+    where
+        getType (BooleanVal _) = Boolean
+        getType (NumberVal _) = Number
+        getType _ = Void
+
 
 runExpN (MinusN exp0 _) = do
     NumberVal ex <- runExpN exp0
@@ -281,6 +312,6 @@ runExpN (NumberLiteralN exp0 _) = do
     let num = read exp0 :: Double
     return $ NumberVal num
 
-fromVal val = case val of
+fromNumberVal val = case val of
     NumberVal x -> x
-    _ -> 1.0 --Nunca pasara xD
+    _ -> 1.0 --Nunca pasara xD (Esperemos xD)

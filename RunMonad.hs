@@ -18,7 +18,11 @@ import Data.Maybe
 
 data CursorStatus = On | Off deriving (Show,Eq)
 
-data Val = BooleanVal Bool | VoidVal | NumberVal Double deriving (Show,Eq)
+data Val = BooleanVal Bool | VoidVal | NumberVal Double deriving (Eq)
+instance Show Val where
+    show (BooleanVal b) = show b
+    show (NumberVal d) = show d -- Quizas truncar a entero si no tiene decimales
+    show (VoidVal) = "void"
 
 type Pos = (Double, Double)
 
