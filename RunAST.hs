@@ -169,13 +169,16 @@ runInstrN (ReadN s _) = do
             let nval = readMaybe input :: Maybe Double
             case nval of
                 Just d -> changeValInSymTable (s, NumberVal d)
-                Nothing -> error $ "Runtime error: No se pudo leer variable "++s++" de tipo "++show t++" desde la entrada :("
+                Nothing -> cantReadError s t
         Boolean -> do
             let nval = readMaybe input :: Maybe Bool
             case nval of
                 Just d -> changeValInSymTable (s, BooleanVal d)
-                Nothing -> error $ "Runtime error: No se pudo leer variable "++s++" de tipo "++show t++" desde la entrada :("
+                Nothing -> cantReadError s t
     return Nothing
+    where
+        cantReadError :: String -> OurType -> OurType ()
+        cantReadError s t = error $ "Runtime error: No se pudo leer variable "++s++" de tipo "++show t++" desde la entrada :("
 
 runInstrN (ReturnN expn _) = Just <$> runExpN expn
 
