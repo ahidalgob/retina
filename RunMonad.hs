@@ -161,17 +161,17 @@ forward steps = do
     let cursor = getCursor oldState
         (x,y) = getPosition cursor
         direc = getDirection cursor
-        direction = toRadian direction 
-        down = (getMaxDown oldState) `min` y `min` (y+sin direction)
-        up = (getMaxUp oldState) `max` y `max` (y+sin direction)
-        left = getMaxLeft oldState `min` x `min` (x+sin direction)
-        right = getMaxRight oldState `max` x `max` (x+cos direction)
+        direction = toRadian direc
+        down = (getMaxDown oldState) `min` y `min` (y+steps*sin direction)
+        up = (getMaxUp oldState) `max` y `max` (y+steps*sin direction)
+        left = getMaxLeft oldState `min` x `min` (x+steps*cos direction)
+        right = getMaxRight oldState `max` x `max` (x+steps*cos direction)
     case (getStatus cursor) of 
         Off -> return ()
         On -> do
-            tell [((x,y),(cos direction + x,sin direction + y))]
+            tell [((x,y),(steps*cos direction + x,steps*sin direction + y))]
             put $ oldState { getMaxRight = right, getMaxLeft = left, getMaxUp = up, getMaxDown = down }
-    setPosition (x+ cos direction,y+ sin direction)
+    setPosition (x+ steps*cos direction,y+ steps*sin direction)
 
 backward :: Double -> RunMonad ()
 backward steps = do
@@ -179,17 +179,17 @@ backward steps = do
     let cursor = getCursor oldState
         (x,y) = getPosition cursor
         direc = getDirection cursor
-        direction = toRadian direction
-        down = (getMaxDown oldState) `min` y `min` (y+sin direction)
-        up = (getMaxUp oldState) `max` y `max` (y+sin direction)
-        left = getMaxLeft oldState `min` x `min` (x+sin direction)
-        right = getMaxRight oldState `max` x `max` (x+cos direction)
+        direction = toRadian direc
+        down = (getMaxDown oldState) `min` y `min` (y-steps*sin direction)
+        up = (getMaxUp oldState) `max` y `max` (y-steps*sin direction)
+        left = getMaxLeft oldState `min` x `min` (x-steps*cos direction)
+        right = getMaxRight oldState `max` x `max` (x-steps*cos direction)
     case (getStatus cursor) of 
         Off -> return ()
         On -> do
-            tell [((x,y),(x - cos direction,y - sin direction))]
+            tell [((x,y),(x - steps*cos direction,y - steps*sin direction))]
             put $ oldState { getMaxRight = right, getMaxLeft = left, getMaxUp = up, getMaxDown = down }
-    setPosition (x- cos direction,y- sin direction)
+    setPosition (x- steps*cos direction,y- steps*sin direction)
 
 setPosition :: Pos -> RunMonad()
 setPosition (x,y) = do
