@@ -24,6 +24,8 @@ import Graphics.Rendering.OpenGL.GL.PixelRectangles.PixelStorage
 
 import Data.Bits
 
+import System.IO
+
 display :: [Segment] -> Double -> Double -> Double -> Double -> IO ()
 display points ww hh dx dy = do
     clear [ ColorBuffer ]
@@ -37,6 +39,7 @@ display points ww hh dx dy = do
 
 
 main = do
+    hSetBuffering stdout NoBuffering
     s <- getArgs >>= (readFile . head)
     let res = runAlexScan s
     case res of
