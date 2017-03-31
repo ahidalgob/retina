@@ -12,6 +12,8 @@ import ContextChecker
 import OurContextMonad
 import System.Environment
 
+import Control.Monad
+
 import Graphics.Rendering.OpenGL
 import Graphics.UI.GLUT
 import Graphics.UI.GLUT.Window
@@ -26,13 +28,36 @@ import Data.Bits
 
 import System.IO
 
-display :: [Segment] -> Double -> Double -> Double -> Double -> IO ()
-display points ww hh dx dy = do
+
+readPixelArray :: Int -> Int -> Int -> Int -> IO [Word32]
+readPixelArray x y w h = do
+    let arraySize = w * h
+    array <- mallocForeignPtrArray arraySize :: IO (ForeignPtr Word32)
+    withForeignPtr array $ \ptr -> do
+        -- ptr :: Ptr Word32
+        -- fromIntegral is needed because Position and Size store GLints not Ints
+        let position = Position (fromIntegral x) (fromIntegral y)
+        let size = Size (fromIntegral w) (fromIntegral h)
+        readPixels position size $ PixelData RGBA UnsignedByte ptr
+        peekArray arraySize ptr
+
+writePBM :: String -> Int -> Int -> IO ()
+writePBM fileName ww hh = do
+  a <- readPixelArray (0) (0) ww hh
+  writeFile fileName $ "P1\n" ++ show ww ++ " " ++ show hh ++ "\n" ++ (concat.map (reverse.(\s -> '\n':s))) (fst $ foldl foldealo ([""],1) a)
+  where
+    foldealo (s:ls,cnt) x = if cnt==ww then ("":(((f x):s):ls),1) else (((' '):((f x):s)):ls,cnt+1)
+    f x = case x .&. 0x00FFFFFF of
+      0 -> '1'
+      _ -> '0'
+
+display :: [Segment] -> Double -> Double -> Double -> Double -> String -> IO ()
+display points ww hh dx dy programName = do
     clear [ ColorBuffer ]
     let pointsToReal = map (\((x,y),(x1,y1))-> ((realToFrac $ (x-dx)/ww,realToFrac $ (y-dy)/hh),(realToFrac $ (x1-dx)/ww,realToFrac $ (y1-dy)/hh))) points
     renderPrimitive Lines $ do
         mapM_ createVertex (pointsToReal :: [((GLfloat, GLfloat),(GLfloat, GLfloat))])
-    -- escribir archivo
+    writePBM ("retina-"++programName++".pbm") (floor $ ww*2) (floor $ hh*2) 
     swapBuffers
     where createVertex ((x,y),(x1,y1)) = do vertex $ Vertex2 x y
                                             vertex $ Vertex2 x1 y1
@@ -40,7 +65,12 @@ display points ww hh dx dy = do
 
 main = do
     hSetBuffering stdout NoBuffering
-    s <- getArgs >>= (readFile . head)
+    programFile <- getArgs >>= (return.head)
+    let programName = extractName programFile 
+    when (length programName < 5) $ error "El archivo debe ser un archivo .rtn"
+    let ext = reverse.take 4.reverse $ programName
+    when (ext/=".rtn") $ error "El archivo debe ser un archivo .rtn"
+    s <- readFile programFile
     let res = runAlexScan s
     case res of
         Right ls -> if invalidTokens ls then do
@@ -66,8 +96,11 @@ main = do
                                 initialDisplayMode $= [DoubleBuffered,RGBAMode]
                                 createWindow "retina AGN"
                                 drawBuffer $= FrontAndBackBuffers
-                                displayCallback $= display segments (xx/2) (yy/2) dx dy
+                                displayCallback $= display segments (xx/2) (yy/2) dx dy ((reverse.drop 4.reverse)programName)
                                 mainLoop
                                 return ()
                             Just e -> error e
         Left e -> putStrLn e
+    where
+        extractName :: String -> String
+        extractName s = reverse $ takeWhile ((/=) '/') $ reverse s
