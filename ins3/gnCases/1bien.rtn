@@ -17,10 +17,10 @@ begin
 end;
 program 
     with
-        number s=2334 mod (5) ,a = s, g6=-6.0,h=funbien();
+        number s=2334 mod (5) ,a = s, g6=-6.0,h=funbien(),g2=7 / 3.5;
         boolean g = (true == false) and (2334 mod (5) > 4546576) or (234<234);
     do
-        writeln h;
+        write g2;
         setposition(2,3);
     end;
 end;
