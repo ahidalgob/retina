@@ -16,7 +16,6 @@ import Control.Monad.IO.Class (liftIO)
 ----------------------------------------------------------
 runConstrN :: ConstrN -> RunMonad ()
 runConstrN (PN ldfn iln) = do --Construccion de Programa
-    --declarar funciones predefinidas
     runConstrN ldfn
     _ <- runInstrListN iln
     return ()
@@ -284,7 +283,7 @@ runExpN (FuncN s explist _) = do
         Just val -> return val
         _ -> case retType of
             Void -> return VoidVal
-            _ -> error $ "Runtime Error: Funcion " ++ s ++ " (_,_,mutable,_) <- lookInSymTable stermino sin alcanzar un return :("
+            _ -> error $ "Runtime Error: Funcion " ++ s ++ " termino sin alcanzar un return :("
     where
         getType (BooleanVal _) = Boolean
         getType (NumberVal _) = Number
