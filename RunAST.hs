@@ -170,10 +170,11 @@ runInstrN (ReadN s _) = do
                 Just d -> changeValInSymTable (s, NumberVal d)
                 Nothing -> cantReadError s t
         Boolean -> do
-            let nval = readMaybe input :: Maybe Bool
+            let nval =  input 
             case nval of
-                Just d -> changeValInSymTable (s, BooleanVal d)
-                Nothing -> cantReadError s t
+                "true" -> changeValInSymTable (s, BooleanVal True)
+                "false" -> changeValInSymTable (s, BooleanVal False)
+                _ -> cantReadError s t
     return Nothing
     where
         cantReadError :: String -> OurType -> RunMonad ()
