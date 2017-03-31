@@ -1,6 +1,8 @@
-program 
-    openeye();
-    forward(120);
-    rotatel(90);
-    forward(120);
+program
+    for k from 3 to 20 do
+        for i from 1 to k do
+            forward(40);
+            rotatel(360/k);
+        end;
+    end;
 end;

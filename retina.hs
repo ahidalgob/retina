@@ -24,10 +24,10 @@ import Graphics.Rendering.OpenGL.GL.PixelRectangles.PixelStorage
 
 import Data.Bits
 
-display :: [Segment] -> Double -> Double -> IO ()
-display points ww hh = do
+display :: [Segment] -> Double -> Double -> Double -> Double -> IO ()
+display points ww hh dx dy = do
     clear [ ColorBuffer ]
-    let pointsToReal = map (\((x,y),(x1,y1))-> ((realToFrac $ x/ww,realToFrac $ y/hh),(realToFrac $ x1/ww,realToFrac $ y1/hh))) points
+    let pointsToReal = map (\((x,y),(x1,y1))-> ((realToFrac $ (x-dx)/ww,realToFrac $ (y-dy)/hh),(realToFrac $ (x1-dx)/ww,realToFrac $ (y1-dy)/hh))) points
     renderPrimitive Lines $ do
         mapM_ createVertex (pointsToReal :: [((GLfloat, GLfloat),(GLfloat, GLfloat))])
     -- escribir archivo
@@ -49,21 +49,21 @@ main = do
                         case getContextError (checkConstrN ast) emptyContextState of
                             Nothing -> do
                                 result <- runRunMonad (runConstrN ast) ourEmptyState
-                                let segments = snd result
+                                let segments = ((0,0),(0,0)):snd result
                                     state = snd $ fst result
-                                    xx = max (getMaxRight state) (-(getMaxLeft state)) + 10
-                                    yy = max (getMaxUp state) (-(getMaxDown state)) + 10
-                                --print segments -- DEBUG
-                                --print myWidth --DEBUG
-                                --print myHeight --DEBUG
-
+                                    x1 = getMaxRight state - getMaxLeft state + 20
+                                    y1 = getMaxUp state - getMaxDown state + 20
+                                    xx = max 200 $ min x1 1002
+                                    yy = max 200 $ min y1 1002
+                                    dx = (getMaxRight state + getMaxLeft state)/2
+                                    dy = (getMaxUp state + getMaxDown state)/2
                                 _ <- getArgsAndInitialize
                                 initialWindowSize $= Size (floor xx) (floor yy)
                                 initialWindowPosition $= Position 400 400
                                 initialDisplayMode $= [DoubleBuffered,RGBAMode]
                                 createWindow "retina AGN"
                                 drawBuffer $= FrontAndBackBuffers
-                                displayCallback $= display segments xx yy
+                                displayCallback $= display segments (xx/2) (yy/2) dx dy
                                 mainLoop
                                 return ()
                             Just e -> error e
