@@ -1,0 +1,29 @@
+func funbien() -> number
+begin
+    if (1>2) then 
+        return 3;
+    else 
+        return 2;
+    end;
+end;
+
+func funMal() -> number
+begin
+    if (1>2) then 
+        return 3;
+    else 
+        #return 2;
+    end;
+end;
+
+program
+    with 
+        number s=2*(45-1),x,y;
+    do
+        repeat s mod 3 times
+            for i from 1 to 7 by 2 do
+                writen i;
+            end;
+        end;
+    end;
+end;

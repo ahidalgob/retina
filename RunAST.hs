@@ -151,7 +151,7 @@ runInstrN (WriteN wordList _) = do
     where
         myPutStr :: WordN -> RunMonad ()
         myPutStr (PWEN exp) = runExpN exp >>= (liftIO . putStr . show)
-        myPutStr (PWSN s) = liftIO $ putStr s
+        myPutStr (PWSN s) = liftIO $ putStr (reverse.drop 1.reverse.drop 1 $ s)
     
 
 runInstrN (WritelnN wordList p) = do

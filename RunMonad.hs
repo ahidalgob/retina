@@ -14,14 +14,17 @@ import Control.Applicative
 import Data.Monoid
 import Data.Either
 import Data.List
-import Data.Maybe   
+import Data.Maybe
+import Data.Fixed (mod')
 
 data CursorStatus = On | Off deriving (Show,Eq)
 
 data Val = BooleanVal Bool | VoidVal | NumberVal Double deriving (Eq)
 instance Show Val where
     show (BooleanVal b) = show b
-    show (NumberVal d) = show d -- Quizas truncar a entero si no tiene decimales
+    show (NumberVal d) = if mod' d 1 == 0 
+                            then show.floor $ d
+                            else show d
     show (VoidVal) = "void"
 
 type Pos = (Double, Double)

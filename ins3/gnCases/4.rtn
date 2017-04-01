@@ -1,0 +1,12 @@
+program 
+    with
+        number g2=234;
+        boolean d=true;
+    do
+        write g2;
+        write d;
+        #read d;
+        #writeln d;
+        #setposition(2,3);
+    end;
+end;

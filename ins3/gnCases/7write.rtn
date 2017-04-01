@@ -1,0 +1,29 @@
+func funbien() -> number
+begin
+    if (1>2) then 
+        return 3;
+    else 
+        #return 2;
+    end;
+end;
+
+func funMal() 
+begin
+    if (1>2) then 
+        #return 3;
+    else 
+        #return 2;
+    end;
+end;
+
+program
+    with 
+        number s=2*(45-1),x,y,d;
+        boolean r;
+    do
+        #writeln true;
+        #read d;
+        #read r;
+        writeln r,r or not r,funbien(); 
+    end;
+end;
