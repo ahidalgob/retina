@@ -54,8 +54,9 @@ writePBM fileName ww hh = do
 display :: [Segment] -> Double -> Double -> Double -> Double -> String -> IO ()
 display points ww hh dx dy programName = do
     clear [ ColorBuffer ]
+    renderPrimitive Points $ vertex (Vertex2 (realToFrac((0-dx)/ww)) (realToFrac((0-dy)/hh)) :: Vertex2 GLfloat)
     let pointsToReal = map (\((x,y),(x1,y1))-> ((realToFrac $ (x-dx)/ww,realToFrac $ (y-dy)/hh),(realToFrac $ (x1-dx)/ww,realToFrac $ (y1-dy)/hh))) points
-    renderPrimitive Lines $ do
+    renderPrimitive Lines $do
         mapM_ createVertex (pointsToReal :: [((GLfloat, GLfloat),(GLfloat, GLfloat))])
     writePBM ("retina-"++programName++".pbm") (floor $ ww*2) (floor $ hh*2) 
     swapBuffers
@@ -82,7 +83,7 @@ main = do
                         case getContextError (checkConstrN ast) emptyContextState of
                             Nothing -> do
                                 result <- runRunMonad (runConstrN ast) ourEmptyState
-                                let segments = ((0,0),(0,0)):snd result
+                                let segments = snd result
                                     state = snd $ fst result
                                     x1 = getMaxRight state - getMaxLeft state + 20
                                     y1 = getMaxUp state - getMaxDown state + 20

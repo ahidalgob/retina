@@ -107,7 +107,7 @@ runInstrN (WithDoN ldn lin _) = do
 
 runInstrN (RepeatN expn lin _) = do
     NumberVal n <- runExpN expn  --------- PISO DE n?
-    repeatCycle n lin
+    repeatCycle (fromInteger $ floor n) lin
     
 
 runInstrN (AssignN s expn _) = do
@@ -121,12 +121,12 @@ runInstrN (ForN s expn1 expn2 lin p) = do
     runInstrN $ ForByN s expn1 expn2 (NumberLiteralN "1" p) lin p
 
 runInstrN (ForByN s expn1 expn2 expn3 lin _) = do
-    NumberVal e1 <- runExpN expn1     --------------- PISO ?????
-    NumberVal e2 <- runExpN expn2     --------------- PISO ?????
-    NumberVal e3 <- runExpN expn3     --------------- PISO ?????
+    NumberVal e11 <- runExpN expn1     --------------- PISO ?????
+    NumberVal e22 <- runExpN expn2     --------------- PISO ?????
+    NumberVal e33 <- runExpN expn3     --------------- PISO ?????
     newScope
-    addToSymTable (s,NumberVal e1,False,Number)
-    ret <- forCycle s e1 e2 e3 lin
+    addToSymTable (s,NumberVal (fromInteger $ floor e11),False,Number)
+    ret <- forCycle s (fromInteger $ floor e11) (fromInteger $ floor e22) (fromInteger $ floor e33) lin
     removeLastScope
     return ret
 
