@@ -58,7 +58,7 @@ display points ww hh dx dy programName = do
     let pointsToReal = map (\((x,y),(x1,y1))-> ((realToFrac $ (x-dx)/ww,realToFrac $ (y-dy)/hh),(realToFrac $ (x1-dx)/ww,realToFrac $ (y1-dy)/hh))) points
     renderPrimitive Lines $do
         mapM_ createVertex (pointsToReal :: [((GLfloat, GLfloat),(GLfloat, GLfloat))])
-    writePBM ("retina-"++programName++".pbm") (floor $ ww*2) (floor $ hh*2) 
+    writePBM (programName++".pbm") (floor $ ww*2) (floor $ hh*2) 
     swapBuffers
     where createVertex ((x,y),(x1,y1)) = do vertex $ Vertex2 x y
                                             vertex $ Vertex2 x1 y1
@@ -93,7 +93,7 @@ main = do
                                     dy = (getMaxUp state + getMaxDown state)/2
                                 _ <- getArgsAndInitialize
                                 initialWindowSize $= Size (floor xx) (floor yy)
-                                initialWindowPosition $= Position 400 400
+                                initialWindowPosition $= Position 400 0
                                 initialDisplayMode $= [DoubleBuffered,RGBAMode]
                                 createWindow "retina AGN"
                                 drawBuffer $= FrontAndBackBuffers
