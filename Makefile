@@ -1,5 +1,5 @@
 retina: Lexer Parser OurContextMonad ContextChecker
-	ghc --make -w retina.hs
+	ghc --make -w -rtsopts retina.hs
 
 Lexer: Lexer.x
 	alex Lexer.x

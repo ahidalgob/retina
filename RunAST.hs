@@ -118,15 +118,21 @@ runInstrN (AssignN s expn _) = do
     return Nothing
 
 runInstrN (ForN s expn1 expn2 lin p) = do
-    runInstrN $ ForByN s expn1 expn2 (NumberLiteralN "1" p) lin p
+    e11 <- (fromIntegral.floor.fromNumberVal) <$> runExpN expn1
+    e22 <- (fromIntegral.floor.fromNumberVal) <$> runExpN expn2
+    newScope
+    addToSymTable (s,NumberVal e11,False,Number)
+    ret <- forCycle s e11 e22 1 lin
+    removeLastScope
+    return ret
 
 runInstrN (ForByN s expn1 expn2 expn3 lin _) = do
-    NumberVal e11 <- runExpN expn1     --------------- PISO ?????
-    NumberVal e22 <- runExpN expn2     --------------- PISO ?????
-    NumberVal e33 <- runExpN expn3     --------------- PISO ?????
+    NumberVal e11 <- runExpN expn1
+    NumberVal e22 <- runExpN expn2
+    NumberVal e33 <- runExpN expn3
     newScope
-    addToSymTable (s,NumberVal (fromInteger $ floor e11),False,Number)
-    ret <- forCycle s (fromInteger $ floor e11) (fromInteger $ floor e22) (fromInteger $ floor e33) lin
+    addToSymTable (s,NumberVal e11,False,Number)
+    ret <- forCycle s e11 e22 e33 lin
     removeLastScope
     return ret
 
