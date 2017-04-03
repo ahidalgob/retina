@@ -45,7 +45,6 @@ checkConstrN (PN ldfN instrListN) = do
     addFunctionSign "rotatel" [("number",Number)] Void
     addFunctionSign "rotater" [("number",Number)] Void
     addFunctionSign "setposition" [("x",Number),("y",Number)] Void
-    addFunctionSign "arc" [("x",Number),("y",Number)] Void
     checkConstrN ldfN
     checkInstrListN instrListN
     return ()
