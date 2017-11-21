@@ -7,6 +7,7 @@
 Made with Haskell for a project [Translators and Interpreters] course at Universidad Simon Bolivar.
 
 ## Examples:
+### Example 1:
 ```
 program
     for k from 1 to 10 do
@@ -25,6 +26,7 @@ end;
 
 
 
+### Example 2:
 ```
 program
     with
@@ -40,6 +42,7 @@ end;
 
 
 
+### Example 3:
 ```
 program
     with
@@ -60,6 +63,7 @@ end;
 
 
 
+### Example 4:
 ```
 program
     for k from 3 to 12 do
@@ -74,6 +78,7 @@ end;
 
 
 
+### Example 5:
 ```
 program
     with
@@ -96,6 +101,7 @@ end;
 
 
 
+### Example 6:
 ```
 program
     for i from 1 to 17 do
@@ -110,4 +116,4 @@ end;
 [//]: # (References)
 
 [Logo]: <http://el.media.mit.edu/logo-foundation/what_is_logo/logo_programming.html>
-[Translators and Interpreters] : <http://ldc.usb.ve/~emhn/cursos/ci3725/>
+[Translators and Interpreters]: <http://ldc.usb.ve/~emhn/cursos/ci3725/>
