@@ -7,8 +7,7 @@
 Made with Haskell for a project in the [Translators and Interpreters] course at Universidad Simon Bolivar. Made with the help of [Alex] and [Happy].
 
 Interpreter coded by:
-Augusto Hidalgo
-Genesis Kufatty
+Augusto Hidalgo and Genesis Kufatty
 
 ## Examples:
 ### Example 1:
