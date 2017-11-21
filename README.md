@@ -4,7 +4,11 @@
 [Logo] inspired language, based on image generation. Each program has a 'pen' and commands to draw with it.
 
 ## Interpreter
-Made with Haskell for a project [Translators and Interpreters] course at Universidad Simon Bolivar.
+Made with Haskell for a project in the [Translators and Interpreters] course at Universidad Simon Bolivar. Made with the help of [Alex] and [Happy].
+
+Interpreter coded by:
+Augusto Hidalgo
+Genesis Kufatty
 
 ## Examples:
 ### Example 1:
@@ -117,3 +121,5 @@ end;
 
 [Logo]: <http://el.media.mit.edu/logo-foundation/what_is_logo/logo_programming.html>
 [Translators and Interpreters]: <http://ldc.usb.ve/~emhn/cursos/ci3725/>
+[Alex]:<https://www.haskell.org/alex/>
+[Happy]:<https://www.haskell.org/happy/>
